@@ -186,6 +186,7 @@ export default function ProductListScreen() {
                       styles.statusChip,
                       product.active ? styles.activeChip : styles.inactiveChip,
                     ]}
+                    textStyle={product.active ? styles.activeText : styles.inactiveText}
                   >
                     {product.active ? 'Active' : 'Inactive'}
                   </Chip>
@@ -197,18 +198,42 @@ export default function ProductListScreen() {
                 ) : null}
                 <View style={styles.cardFooter}>
                   <Chip
-                    icon="package-variant"
-                    style={styles.quantityChip}
-                    textStyle={styles.quantityText}
+                    icon={
+                      product.quantity === 0 ? "alert-circle-outline" :
+                        product.quantity < 5 ? "alert-circle" :
+                          product.quantity < 10 ? "alert" :
+                            "package-variant"
+                    }
+                    style={[
+                      styles.quantityChip,
+                      product.quantity === 0 && styles.outOfStockChip,
+                      product.quantity < 5 && product.quantity > 0 && styles.criticalQuantityChip,
+                      product.quantity < 10 && product.quantity >= 5 && styles.lowQuantityChip,
+                      product.quantity >= 10 && styles.normalQuantityChip
+                    ]}
+                    textStyle={[
+                      styles.quantityChipText,
+                      product.quantity === 0 && styles.outOfStockChipText,
+                      product.quantity < 5 && product.quantity > 0 && styles.criticalQuantityChipText,
+                      product.quantity < 10 && product.quantity >= 5 && styles.lowQuantityChipText,
+                      product.quantity >= 10 && styles.normalQuantityChipText
+                    ]}
+                        //TODO: fix this
+                        // iconStyle={{
+                        //   color: product.quantity === 0 ? "#BA1A1A" :
+                        //     product.quantity < 5 ? "#BA1A1A" :
+                        //       product.quantity < 10 ? "#FF9800" :
+                        //         "#6750A4"
+                        // }}
                   >
                     Qty: {product.quantity}
                   </Chip>
-                  <Text style={styles.dateText}>
-                    Added: {new Date(product.createdAt).toLocaleDateString()}
-                  </Text>
                 </View>
               </Card.Content>
               <Card.Actions>
+                    <Text style={styles.dateText}>
+                      Added: {new Date(product.createdAt).toLocaleDateString()}
+                    </Text>
                 <Button
                   mode="outlined"
                   onPress={() => handleEdit(product.id)}
@@ -228,28 +253,13 @@ export default function ProductListScreen() {
           ))
         )}
 
-        {/* User Info */}
-        <Card style={styles.userCard}>
-          <Card.Content>
-            <Title>Account</Title>
-            <Paragraph>Logged in as: {currentUser?.name}</Paragraph>
-            <Paragraph>Email: {currentUser?.email}</Paragraph>
-            <Button
-              mode="outlined"
-              onPress={handleLogout}
-              style={styles.logoutButton}
-              icon="logout"
-            >
-              Logout
-            </Button>
-          </Card.Content>
-        </Card>
       </ScrollView>
 
       <FAB
         icon="plus"
         style={styles.fab}
         onPress={() => router.push('/create')}
+        label="New Product"
       />
 
       <Snackbar
@@ -270,125 +280,231 @@ export default function ProductListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#fef7ff", // M3 surface
   },
+
   statsCard: {
     margin: 16,
-    elevation: 4,
+    padding: 16,
+    backgroundColor: "#fff",
+    borderRadius: 16, // M3 rounded corners
+    elevation: 1,
+    shadowOpacity: 0.1,
   },
+
   statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 8,
   },
+
   statItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
+
   statNumber: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#6200ee',
+    fontWeight: "600",
+    color: "#6750A4", // M3 primary
   },
+
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: "#49454F", // M3 on-surface-variant
     marginTop: 4,
   },
+
   lowStock: {
-    color: '#ff6b6b',
+    color: "#B3261E", // M3 error
   },
+
   divider: {
     width: 1,
     height: 40,
-    backgroundColor: '#ddd',
+    backgroundColor: "#E7E0EC", // M3 outline-variant
   },
+
   productCard: {
     marginHorizontal: 16,
     marginBottom: 12,
-    elevation: 2,
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 16,
+    elevation: 1,
   },
+
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 8,
   },
+
   productName: {
     flex: 1,
     marginRight: 8,
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1D1B20", // M3 on-surface
   },
+
   statusChip: {
-    height: 32,
+    borderWidth: 1,
+    borderRadius: 50,
+    paddingHorizontal: 5,
+    paddingVertical: 0,
   },
+
   activeChip: {
-    backgroundColor: '#e8f5e9',
-    borderColor: '#4caf50',
+    backgroundColor: "#E8F3E8",
+    borderColor: "#4CAF50",
   },
+
   inactiveChip: {
-    backgroundColor: '#ffebee',
-    borderColor: '#f44336',
+    backgroundColor: "#FCEEEE",
+    borderColor: "#E53935",
   },
+
+  activeText: {
+    color: "#2E7D32", // green text
+  },
+
+  inactiveText: {
+    color: "#C62828", // red text
+  },
+
   description: {
     marginBottom: 12,
-    color: '#666',
+    color: "#49454F",
+    fontSize: 14,
   },
+
   cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 8,
   },
+
   quantityChip: {
-    backgroundColor: '#e3f2fd',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 0,
+    borderColor: "transparent",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  quantityText: {
-    color: '#1976d2',
-    fontWeight: 'bold',
+
+  quantityChipText: {
+    fontWeight: "600",
+    fontSize: 14,
+    marginLeft: 4,
+  },
+
+  normalQuantityChip: {
+    backgroundColor: "#E8DEF8", // Secondary container
+  },
+
+  normalQuantityChipText: {
+    color: "#6750A4", // Primary color
+  },
+
+  lowQuantityChip: {
+    backgroundColor: "#FFF3E0", // Warning container
+    borderColor: "#FF9800", // Warning color
+  },
+
+  lowQuantityChipText: {
+    color: "#EF6C00", // Warning text
+    fontWeight: "700",
+  },
+
+  criticalQuantityChip: {
+    backgroundColor: "#FFE4E6", // Error container variant
+    borderColor: "#BA1A1A", // Error color
+  },
+
+  criticalQuantityChipText: {
+    color: "#BA1A1A", // Error color
+    fontWeight: "700",
+  },
+
+  outOfStockChip: {
+    backgroundColor: "#FFEBEE", // Error container
+    borderColor: "#C62828", // Darker error
+  },
+
+  outOfStockChipText: {
+    color: "#C62828", // Darker error text
+    fontWeight: "700",
   },
   dateText: {
     fontSize: 12,
-    color: '#999',
+    color: "#6D6D6D",
   },
+
   actionButton: {
+    backgroundColor: "#E8DEF8", // Secondary container
     marginRight: 8,
   },
+
   deleteButton: {
-    backgroundColor: '#ff6b6b',
+    backgroundColor: "#B3261E", // M3 error
   },
+
+  // ======= Error Card ======= //
+
   errorCard: {
     margin: 16,
-    backgroundColor: '#ffebee',
+    backgroundColor: "#F9DEDC", // M3 error-container
+    padding: 16,
+    borderRadius: 16,
   },
+
   errorText: {
-    color: '#d32f2f',
+    color: "#410E0B", // M3 on-error-container
     marginBottom: 12,
+    fontWeight: "500",
   },
+
   retryButton: {
     marginTop: 8,
   },
+
+  // ===== Empty State ===== //
+
   emptyCard: {
     margin: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
+
   emptyContent: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 32,
   },
+
   userCard: {
     margin: 16,
     marginTop: 8,
+    padding: 16,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    elevation: 1,
   },
+
   logoutButton: {
     marginTop: 16,
   },
+
   fab: {
     position: 'absolute',
     margin: 16,
     right: 0,
     bottom: 0,
-    backgroundColor: '#6200ee',
   },
+
 });

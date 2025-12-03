@@ -12,10 +12,11 @@ import { loginSchema } from '../../utils/validation';
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { currentUser, register, login, loading: authLoading } = useAuth();
+  const { currentUser, register, login, logout, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
   const {
     control: loginControl,
@@ -56,17 +57,41 @@ export default function RegisterScreen() {
     }
   };
 
+  const handleLogout = async () => {
+    setLogoutLoading(true);
+    try {
+      await logout();
+      showSnackbar('Logged out successfully!');
+      // Reset any form states if needed
+      resetLoginForm();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Logout failed');
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
+
   if (currentUser) {
     return (
       <View style={styles.container}>
-        <Appbar.Header>
-          <Appbar.Content title="Profile" />
-        </Appbar.Header>
         
         <ScrollView>
           <Card style={styles.userCard}>
             <Card.Content>
-              <Title>Account Information</Title>
+              <View style={styles.headerRow}>
+                <Title>Account Information</Title>
+                <Button
+                  mode="outlined"
+                  onPress={handleLogout}
+                  loading={logoutLoading}
+                  disabled={logoutLoading}
+                  icon="logout"
+                  style={styles.logoutButton}
+                >
+                  Logout
+                </Button>
+              </View>
+              
               <Paragraph style={styles.userInfo}>
                 <Title style={styles.label}>Name:</Title>
                 <Paragraph>{currentUser.name}</Paragraph>
@@ -102,6 +127,19 @@ export default function RegisterScreen() {
                 icon="plus"
               >
                 Add New Product
+              </Button>
+              
+              {/* Additional Logout Button at Bottom */}
+              <Button
+                mode="outlined"
+                onPress={handleLogout}
+                loading={logoutLoading}
+                disabled={logoutLoading}
+                style={[styles.actionButton, styles.logoutActionButton]}
+                icon="logout"
+                textColor="#d32f2f"
+              >
+                Sign Out
               </Button>
             </Card.Content>
           </Card>
@@ -230,5 +268,19 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     marginVertical: 8,
+  },
+  logoutButton: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  logoutActionButton: {
+    borderColor: '#d32f2f',
+    marginTop: 16,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
 });

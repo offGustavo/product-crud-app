@@ -5,6 +5,12 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+// In your app's entry point (app/_layout.tsx or similar):
+import Database from '../database/index';
+
+// Initialize database early
+Database.init().catch(console.error);
+
 export const unstable_settings = {
   anchor: '(tabs)',
 };

@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useDatabase';
-import { Text } from 'react-native-paper';
 
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
