@@ -130,17 +130,17 @@ export default function RegisterScreen() {
               </Button>
               
               {/* Additional Logout Button at Bottom */}
-              <Button
-                mode="outlined"
-                onPress={handleLogout}
-                loading={logoutLoading}
-                disabled={logoutLoading}
-                style={[styles.actionButton, styles.logoutActionButton]}
-                icon="logout"
-                textColor="#d32f2f"
-              >
-                Sign Out
-              </Button>
+              {/* <Button */}
+              {/*   mode="outlined" */}
+              {/*   onPress={handleLogout} */}
+              {/*   loading={logoutLoading} */}
+              {/*   disabled={logoutLoading} */}
+              {/*   style={[styles.actionButton, styles.logoutActionButton]} */}
+              {/*   icon="logout" */}
+              {/*   textColor="#d32f2f" */}
+              {/* > */}
+              {/*   Sign Out */}
+              {/* </Button> */}
             </Card.Content>
           </Card>
         </ScrollView>

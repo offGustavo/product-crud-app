@@ -231,9 +231,9 @@ export default function ProductListScreen() {
                 </View>
               </Card.Content>
               <Card.Actions>
-                    <Text style={styles.dateText}>
-                      Added: {new Date(product.createdAt).toLocaleDateString()}
-                    </Text>
+                  <Text style={styles.dateText}>
+                    Added: {new Date(product.createdAt).toLocaleDateString()}
+                  </Text>
                 <Button
                   mode="outlined"
                   onPress={() => handleEdit(product.id)}
@@ -255,12 +255,12 @@ export default function ProductListScreen() {
 
       </ScrollView>
 
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => router.push('/create')}
-        label="New Product"
-      />
+      {/* <FAB */}
+      {/*   icon="plus" */}
+      {/*   style={styles.fab} */}
+      {/*   onPress={() => router.push('/create')} */}
+      {/*   label="New Product" */}
+      {/* /> */}
 
       <Snackbar
         visible={snackbarVisible}
@@ -441,12 +441,14 @@ const styles = StyleSheet.create({
     color: "#C62828", // Darker error text
     fontWeight: "700",
   },
+
   dateText: {
     fontSize: 12,
     color: "#6D6D6D",
   },
 
   actionButton: {
+    borderWidth: 0,
     backgroundColor: "#E8DEF8", // Secondary container
     marginRight: 8,
   },

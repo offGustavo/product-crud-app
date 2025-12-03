@@ -22,11 +22,17 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#6200ee',
+        tabBarActiveTintColor: '#6750A4',
         headerStyle: {
-          backgroundColor: '#6200ee',
+          backgroundColor: '#FEF7FF',
         },
-        headerTintColor: '#fff',
+        headerTintColor: '#6750A4',
+        // Add tabBarStyle with your background color
+        tabBarStyle: {
+          backgroundColor: "#E8DEF8", // Secondary container color
+          borderTopWidth: 0, // Optional: removes the top border
+          elevation: 0, // Optional: removes shadow on Android
+        },
       }}
     >
       <Tabs.Screen
@@ -41,7 +47,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="create"
         options={{
-          title: 'Add Product',
+          title: 'New Product',
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="add" size={size} color={color} />
           ),

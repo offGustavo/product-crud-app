@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { Appbar, Snackbar } from 'react-native-paper';
+import { Appbar, Snackbar, Chip, Text, useTheme } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import ProductForm from '../../components/ProductForm';
 import { useAuth } from '../../hooks/useDatabase';
@@ -24,6 +24,9 @@ export default function CreateProductScreen() {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [productData, setProductData] = useState<ProductFormValues | null>(null);
+  
+  // Using Material-UI theme
+  const theme = useTheme();
 
   useEffect(() => {
     if (productId && products.length > 0) {
@@ -101,24 +104,41 @@ export default function CreateProductScreen() {
     );
   };
 
+  // Example function to render a Material-UI styled Chip for quantity status
+  const renderQuantityChip = (quantity: number) => {
+    const isNormalQuantity = quantity > 10; // Example condition
+    
+    return (
+      <Chip
+        style={isNormalQuantity ? styles.normalQuantityChip : styles.lowQuantityChip}
+        textStyle={isNormalQuantity ? styles.normalQuantityChipText : styles.lowQuantityChipText}
+        icon={isNormalQuantity ? "check-circle" : "alert-circle"}
+      >
+        {isNormalQuantity ? 'In Stock' : 'Low Stock'}
+      </Chip>
+    );
+  };
+
   return (
-    <View style={styles.container}>
-      <Appbar.Header>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Appbar.Header theme={theme}>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content 
           title={productId ? 'Edit Product' : 'Create Product'} 
+          titleStyle={{ color: theme.colors.onSurface }}
         />
         {productId && (
           <Appbar.Action 
             icon="delete" 
             onPress={handleDelete} 
             disabled={loading}
+            color={theme.colors.error}
           />
         )}
       </Appbar.Header>
 
       {!currentUser ? (
-        <View style={styles.authRequired}>
+        <View style={[styles.authRequired, { backgroundColor: theme.colors.surface }]}>
           <Snackbar
             visible={true}
             onDismiss={() => {}}
@@ -126,17 +146,30 @@ export default function CreateProductScreen() {
               label: 'Login',
               onPress: () => router.push('/register'),
             }}
+            style={{ backgroundColor: theme.colors.primaryContainer }}
           >
-            Please register or login to manage products
+            <Text style={{ color: theme.colors.onPrimaryContainer }}>
+              Please register or login to manage products
+            </Text>
           </Snackbar>
         </View>
       ) : (
-        <ProductForm
-          onSubmit={handleSubmit}
-          initialData={productData || undefined}
-          loading={loading || productsLoading}
-          userId={currentUser.id}
-        />
+        <View style={styles.formContainer}>
+          {/* Example usage of quantity chip - you might want to integrate this with your ProductForm */}
+          {productData?.quantity !== undefined && (
+            <View style={styles.chipContainer}>
+              {renderQuantityChip(productData.quantity)}
+            </View>
+          )}
+          
+          <ProductForm
+            onSubmit={handleSubmit}
+            initialData={productData || undefined}
+            loading={loading || productsLoading}
+            userId={currentUser.id}
+            theme={theme}
+          />
+        </View>
       )}
 
       <Snackbar
@@ -147,8 +180,11 @@ export default function CreateProductScreen() {
           label: 'OK',
           onPress: () => setSnackbarVisible(false),
         }}
+        style={{ backgroundColor: theme.colors.inverseSurface }}
       >
-        {snackbarMessage}
+        <Text style={{ color: theme.colors.inverseOnSurface }}>
+          {snackbarMessage}
+        </Text>
       </Snackbar>
     </View>
   );
@@ -157,11 +193,30 @@ export default function CreateProductScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   authRequired: {
     flex: 1,
     justifyContent: 'center',
     padding: 20,
+  },
+  formContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  chipContainer: {
+    marginBottom: 16,
+    alignItems: 'flex-start',
+  },
+  normalQuantityChip: {
+    backgroundColor: "#E8DEF8", // Secondary container
+  },
+  normalQuantityChipText: {
+    color: "#6750A4", // Primary color
+  },
+  lowQuantityChip: {
+    backgroundColor: "#FFD8E4", // Error container
+  },
+  lowQuantityChipText: {
+    color: "#8C1D18", // On error container
   },
 });
