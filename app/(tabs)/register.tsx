@@ -1,21 +1,44 @@
-import React, { useState } from 'react'
-import { Tabs } from 'react-native-paper-tabs';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Appbar, Card, Title, Paragraph, Button, Snackbar, TextInput } from 'react-native-paper';
-import { useRouter } from 'expo-router';
-import UserForm from '../../components/UserForm';
-import { useAuth } from '../../hooks/useDatabase';
-import { LoginFormValues } from '../../utils/validation';
-import { Controller, useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { loginSchema } from '../../utils/validation';
+import React, { useState } from "react";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import {
+  Card,
+  Title,
+  Button,
+  Snackbar,
+  TextInput,
+  Text,
+  Divider,
+  Surface,
+  Avatar,
+  useTheme,
+} from "react-native-paper";
+import { useRouter } from "expo-router";
+import { useAuth } from "../../contexts/AuthContext";
+import { LoginFormValues, UserFormValues } from "../../utils/validation";
+import { Controller, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { loginSchema, userSchema } from "../../utils/validation";
 
-export default function RegisterScreen() {
+export default function AuthScreen() {
   const router = useRouter();
-  const { currentUser, register, login, logout, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState(0);
+  const theme = useTheme();
+  const {
+    currentUser,
+    register,
+    login,
+    logout,
+    loading: authLoading,
+  } = useAuth();
+  const [isLoginMode, setIsLoginMode] = useState(true);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [logoutLoading, setLogoutLoading] = useState(false);
 
   const {
@@ -26,8 +49,22 @@ export default function RegisterScreen() {
   } = useForm<LoginFormValues>({
     resolver: yupResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
+    },
+  });
+
+  const {
+    control: registerControl,
+    handleSubmit: handleRegisterSubmit,
+    formState: { errors: registerErrors },
+    reset: resetRegisterForm,
+  } = useForm<UserFormValues>({
+    resolver: yupResolver(userSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
     },
   });
 
@@ -36,251 +73,717 @@ export default function RegisterScreen() {
     setSnackbarVisible(true);
   };
 
-  const handleRegister = async (data: any) => {
+  const handleRegister = async (data: UserFormValues) => {
     try {
       await register(data);
-      showSnackbar('Registration successful!');
-      setTimeout(() => router.replace('/'), 1500);
+      showSnackbar("Registration successful! Welcome!");
+      resetRegisterForm();
+      setTimeout(() => {
+        router.replace("/");
+      }, 1500);
     } catch (error: any) {
-      showSnackbar(error.message || 'Registration failed');
+      showSnackbar(error.message || "Registration failed");
     }
   };
 
   const handleLogin = async (data: LoginFormValues) => {
     try {
       await login(data.email, data.password);
-      showSnackbar('Login successful!');
-      setTimeout(() => router.replace('/'), 1500);
-    } catch (error: any) {
-      showSnackbar(error.message || 'Login failed');
+      showSnackbar("Login successful! Welcome back!");
       resetLoginForm();
+      setTimeout(() => {
+        router.replace("/");
+      }, 1500);
+    } catch (error: any) {
+      showSnackbar(error.message || "Invalid credentials");
     }
   };
 
   const handleLogout = async () => {
-    setLogoutLoading(true);
-    try {
-      await logout();
-      showSnackbar('Logged out successfully!');
-      // Reset any form states if needed
-      resetLoginForm();
-    } catch (error: any) {
-      showSnackbar(error.message || 'Logout failed');
-    } finally {
-      setLogoutLoading(false);
-    }
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          setLogoutLoading(true);
+          try {
+            logout();
+            showSnackbar("Signed out successfully");
+            resetLoginForm();
+            resetRegisterForm();
+          } catch (error: any) {
+            showSnackbar(error.message || "Sign out failed");
+          } finally {
+            setLogoutLoading(false);
+          }
+        },
+      },
+    ]);
   };
 
+  const toggleMode = () => {
+    setIsLoginMode(!isLoginMode);
+    resetLoginForm();
+    resetRegisterForm();
+  };
+
+  // User Profile Screen
   if (currentUser) {
     return (
-      <View style={styles.container}>
-        
-        <ScrollView>
-          <Card style={styles.userCard}>
-            <Card.Content>
-              <View style={styles.headerRow}>
-                <Title>Account Information</Title>
-                <Button
-                  mode="outlined"
-                  onPress={handleLogout}
-                  loading={logoutLoading}
-                  disabled={logoutLoading}
-                  icon="logout"
-                  style={styles.logoutButton}
+      <KeyboardAvoidingView
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <Surface
+            style={[
+              styles.header,
+              { backgroundColor: theme.colors.primaryContainer },
+            ]}
+          >
+            <View style={styles.headerContent}>
+              <Avatar.Text
+                size={80}
+                label={currentUser.name.charAt(0).toUpperCase()}
+                style={{ backgroundColor: theme.colors.primary }}
+                labelStyle={{
+                  color: theme.colors.onPrimary,
+                  fontSize: 32,
+                  fontWeight: "bold",
+                }}
+              />
+              <Title
+                style={[
+                  styles.welcomeTitle,
+                  { color: theme.colors.onPrimaryContainer },
+                ]}
+              >
+                Welcome back!
+              </Title>
+              <Text
+                style={[
+                  styles.userName,
+                  { color: theme.colors.onPrimaryContainer },
+                ]}
+              >
+                {currentUser.name}
+              </Text>
+            </View>
+          </Surface>
+
+          {/* User Info Card */}
+          <Card
+            style={[styles.userCard, { backgroundColor: theme.colors.surface }]}
+          >
+            <Card.Content style={styles.userCardContent}>
+              <View style={styles.infoRow}>
+                <Text
+                  style={[
+                    styles.infoLabel,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
                 >
-                  Logout
-                </Button>
+                  Full Name
+                </Text>
+                <Text
+                  style={[styles.infoValue, { color: theme.colors.onSurface }]}
+                >
+                  {currentUser.name}
+                </Text>
               </View>
-              
-              <Paragraph style={styles.userInfo}>
-                <Title style={styles.label}>Name:</Title>
-                <Paragraph>{currentUser.name}</Paragraph>
-              </Paragraph>
-              <Paragraph style={styles.userInfo}>
-                <Title style={styles.label}>Email:</Title>
-                <Paragraph>{currentUser.email}</Paragraph>
-              </Paragraph>
-              <Paragraph style={styles.userInfo}>
-                <Title style={styles.label}>Member Since:</Title>
-                <Paragraph>
-                  {new Date(currentUser.createdAt).toLocaleDateString()}
-                </Paragraph>
-              </Paragraph>
+
+              <Divider style={styles.infoDivider} />
+
+              <View style={styles.infoRow}>
+                <Text
+                  style={[
+                    styles.infoLabel,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  Email Address
+                </Text>
+                <Text
+                  style={[styles.infoValue, { color: theme.colors.onSurface }]}
+                >
+                  {currentUser.email}
+                </Text>
+              </View>
+
+              <Divider style={styles.infoDivider} />
+
+              <View style={styles.infoRow}>
+                <Text
+                  style={[
+                    styles.infoLabel,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  Member Since
+                </Text>
+                <Text
+                  style={[styles.infoValue, { color: theme.colors.onSurface }]}
+                >
+                  {new Date(currentUser.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </Text>
+              </View>
             </Card.Content>
           </Card>
 
-          <Card style={styles.actionsCard}>
+          {/* Quick Actions */}
+          <Card
+            style={[
+              styles.actionsCard,
+              { backgroundColor: theme.colors.surface },
+            ]}
+          >
             <Card.Content>
-              <Title>Quick Actions</Title>
-              <Button
-                mode="contained"
-                onPress={() => router.push('/')}
-                style={styles.actionButton}
-                icon="home"
+              <Title
+                style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
               >
-                Go to Products
-              </Button>
+                Quick Actions
+              </Title>
+
               <Button
                 mode="contained"
-                onPress={() => router.push('/create')}
-                style={styles.actionButton}
-                icon="plus"
+                onPress={() => router.push("/")}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+                contentStyle={styles.actionButtonContent}
+                icon="view-list"
+                labelStyle={{ color: theme.colors.onPrimary }}
+              >
+                View My Products
+              </Button>
+
+              <Button
+                mode="contained"
+                onPress={() => router.push("/create")}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: theme.colors.secondary },
+                ]}
+                contentStyle={styles.actionButtonContent}
+                icon="plus-circle"
+                labelStyle={{ color: theme.colors.onSecondary }}
               >
                 Add New Product
               </Button>
-              
-              {/* Additional Logout Button at Bottom */}
-              {/* <Button */}
-              {/*   mode="outlined" */}
-              {/*   onPress={handleLogout} */}
-              {/*   loading={logoutLoading} */}
-              {/*   disabled={logoutLoading} */}
-              {/*   style={[styles.actionButton, styles.logoutActionButton]} */}
-              {/*   icon="logout" */}
-              {/*   textColor="#d32f2f" */}
-              {/* > */}
-              {/*   Sign Out */}
-              {/* </Button> */}
+            </Card.Content>
+          </Card>
+
+          {/* Sign Out Button */}
+          <Card
+            style={[
+              styles.signOutCard,
+              { backgroundColor: theme.colors.errorContainer },
+            ]}
+          >
+            <Card.Content>
+              <Button
+                mode="outlined"
+                onPress={handleLogout}
+                loading={logoutLoading}
+                disabled={logoutLoading}
+                style={[
+                  styles.signOutButton,
+                  { borderColor: theme.colors.error },
+                ]}
+                contentStyle={styles.actionButtonContent}
+                icon="logout"
+                labelStyle={{ color: theme.colors.error }}
+              >
+                Sign Out
+              </Button>
             </Card.Content>
           </Card>
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
+  // Authentication Screen
   return (
-    <View style={styles.container}>
-      <Appbar.Header>
-        <Appbar.Content title="Authentication" />
-      </Appbar.Header>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <Surface
+          style={[
+            styles.authHeader,
+            { backgroundColor: theme.colors.primaryContainer },
+          ]}
+        >
+          <View style={styles.authHeaderContent}>
+            <Avatar.Icon
+              size={64}
+              icon="account-circle"
+              style={{ backgroundColor: theme.colors.primary }}
+            />
+            <Title
+              style={[
+                styles.authTitle,
+                { color: theme.colors.onPrimaryContainer },
+              ]}
+            >
+              {isLoginMode ? "Welcome Back" : "Create Account"}
+            </Title>
+            <Text
+              style={[
+                styles.authSubtitle,
+                { color: theme.colors.onPrimaryContainer },
+              ]}
+            >
+              {isLoginMode
+                ? "Sign in to manage your products"
+                : "Join us to start managing your inventory"}
+            </Text>
+          </View>
+        </Surface>
 
-      <Tabs value={activeTab} onValueChange={(index) => setActiveTab(index)}>
-        <Tabs label="Register" value={0} />
-        <Tabs label="Login" value={1} />
-      </Tabs>
+        {/* Auth Form */}
+        <Card
+          style={[styles.authCard, { backgroundColor: theme.colors.surface }]}
+        >
+          <Card.Content style={styles.authCardContent}>
+            <Title
+              style={[styles.formTitle, { color: theme.colors.onSurface }]}
+            >
+              {isLoginMode ? "Sign In" : "Sign Up"}
+            </Title>
 
-      {activeTab === 0 ? (
-        <UserForm onSubmit={handleRegister} loading={authLoading} />
-      ) : (
-        <ScrollView style={styles.loginContainer}>
-          <Card style={styles.loginCard}>
-            <Card.Content>
-              <Title>Login</Title>
-              
+            {/* Register Form */}
+            {!isLoginMode && (
+              <Controller
+                control={registerControl}
+                name="name"
+                render={({ field: { onChange, value } }) => (
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      label="Full Name"
+                      value={value}
+                      onChangeText={onChange}
+                      mode="outlined"
+                      error={!!registerErrors.name}
+                      disabled={authLoading}
+                      style={styles.input}
+                      left={<TextInput.Icon icon="account" />}
+                      outlineColor={theme.colors.outline}
+                      activeOutlineColor={theme.colors.primary}
+                    />
+                    {registerErrors.name && (
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { color: theme.colors.error },
+                        ]}
+                      >
+                        {registerErrors.name.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
+            )}
+
+            {/* Email Field */}
+            {isLoginMode ? (
               <Controller
                 control={loginControl}
                 name="email"
                 render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    label="Email"
-                    value={value}
-                    onChangeText={onChange}
-                    mode="outlined"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    error={!!loginErrors.email}
-                    disabled={authLoading}
-                    style={styles.input}
-                  />
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      label="Email Address"
+                      value={value}
+                      onChangeText={onChange}
+                      mode="outlined"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      error={!!loginErrors.email}
+                      disabled={authLoading}
+                      style={styles.input}
+                      left={<TextInput.Icon icon="email" />}
+                      outlineColor={theme.colors.outline}
+                      activeOutlineColor={theme.colors.primary}
+                    />
+                    {loginErrors.email && (
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { color: theme.colors.error },
+                        ]}
+                      >
+                        {loginErrors.email.message}
+                      </Text>
+                    )}
+                  </View>
                 )}
               />
+            ) : (
+              <Controller
+                control={registerControl}
+                name="email"
+                render={({ field: { onChange, value } }) => (
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      label="Email Address"
+                      value={value}
+                      onChangeText={onChange}
+                      mode="outlined"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      error={!!registerErrors.email}
+                      disabled={authLoading}
+                      style={styles.input}
+                      left={<TextInput.Icon icon="email" />}
+                      outlineColor={theme.colors.outline}
+                      activeOutlineColor={theme.colors.primary}
+                    />
+                    {registerErrors.email && (
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { color: theme.colors.error },
+                        ]}
+                      >
+                        {registerErrors.email.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
+            )}
 
+            {/* Password Field */}
+            {isLoginMode ? (
               <Controller
                 control={loginControl}
                 name="password"
                 render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    label="Password"
-                    value={value}
-                    onChangeText={onChange}
-                    mode="outlined"
-                    secureTextEntry
-                    error={!!loginErrors.password}
-                    disabled={authLoading}
-                    style={styles.input}
-                  />
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      label="Password"
+                      value={value}
+                      onChangeText={onChange}
+                      mode="outlined"
+                      secureTextEntry
+                      error={!!loginErrors.password}
+                      disabled={authLoading}
+                      style={styles.input}
+                      left={<TextInput.Icon icon="lock" />}
+                      outlineColor={theme.colors.outline}
+                      activeOutlineColor={theme.colors.primary}
+                    />
+                    {loginErrors.password && (
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { color: theme.colors.error },
+                        ]}
+                      >
+                        {loginErrors.password.message}
+                      </Text>
+                    )}
+                  </View>
                 )}
               />
+            ) : (
+              <Controller
+                control={registerControl}
+                name="password"
+                render={({ field: { onChange, value } }) => (
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      label="Password"
+                      value={value}
+                      onChangeText={onChange}
+                      mode="outlined"
+                      secureTextEntry
+                      error={!!registerErrors.password}
+                      disabled={authLoading}
+                      style={styles.input}
+                      left={<TextInput.Icon icon="lock" />}
+                      outlineColor={theme.colors.outline}
+                      activeOutlineColor={theme.colors.primary}
+                    />
+                    {registerErrors.password && (
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { color: theme.colors.error },
+                        ]}
+                      >
+                        {registerErrors.password.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
+            )}
 
-              <Button
-                mode="contained"
-                onPress={handleLoginSubmit(handleLogin)}
-                loading={authLoading}
-                disabled={authLoading}
-                style={styles.loginButton}
+            {/* Submit Button */}
+            <Button
+              mode="contained"
+              onPress={
+                isLoginMode
+                  ? handleLoginSubmit(handleLogin)
+                  : handleRegisterSubmit(handleRegister)
+              }
+              loading={authLoading}
+              disabled={authLoading}
+              style={[
+                styles.submitButton,
+                { backgroundColor: theme.colors.primary },
+              ]}
+              contentStyle={styles.submitButtonContent}
+              labelStyle={{
+                color: theme.colors.onPrimary,
+                fontSize: 16,
+                fontWeight: "600",
+              }}
+            >
+              {isLoginMode ? "Sign In" : "Create Account"}
+            </Button>
+
+            {/* Toggle Mode */}
+            <View style={styles.toggleContainer}>
+              <Text
+                style={[
+                  styles.toggleText,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
               >
-                Login
+                {isLoginMode
+                  ? "Don't have an account?"
+                  : "Already have an account?"}
+              </Text>
+              <Button
+                mode="text"
+                onPress={toggleMode}
+                disabled={authLoading}
+                labelStyle={{ color: theme.colors.primary, fontWeight: "600" }}
+              >
+                {isLoginMode ? "Sign Up" : "Sign In"}
               </Button>
-            </Card.Content>
-          </Card>
-        </ScrollView>
-      )}
+            </View>
+          </Card.Content>
+        </Card>
+      </ScrollView>
 
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
+        duration={4000}
         action={{
-          label: 'OK',
+          label: "OK",
           onPress: () => setSnackbarVisible(false),
+          labelStyle: { color: theme.colors.inversePrimary },
         }}
+        style={{ backgroundColor: theme.colors.inverseSurface }}
       >
-        {snackbarMessage}
+        <Text style={{ color: theme.colors.inverseOnSurface }}>
+          {snackbarMessage}
+        </Text>
       </Snackbar>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
-  loginContainer: {
+  scrollView: {
     flex: 1,
   },
-  loginCard: {
-    margin: 20,
-    padding: 10,
+
+  // Profile Screen Styles
+  header: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  input: {
-    marginBottom: 16,
+  headerContent: {
+    alignItems: "center",
   },
-  loginButton: {
-    marginTop: 8,
-    paddingVertical: 8,
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: "600",
+    marginTop: 16,
+    marginBottom: 4,
   },
+  userName: {
+    fontSize: 18,
+    fontWeight: "400",
+    opacity: 0.8,
+  },
+
   userCard: {
     margin: 20,
-    marginBottom: 10,
+    borderRadius: 16,
+    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  userInfo: {
-    marginVertical: 8,
+  userCardContent: {
+    paddingVertical: 20,
   },
-  label: {
+  infoRow: {
+    paddingVertical: 12,
+  },
+  infoLabel: {
     fontSize: 14,
+    fontWeight: "500",
     marginBottom: 4,
-    color: '#666',
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
+  infoValue: {
+    fontSize: 16,
+    fontWeight: "400",
+  },
+  infoDivider: {
+    marginVertical: 8,
+    opacity: 0.5,
+  },
+
   actionsCard: {
-    margin: 20,
-    marginTop: 10,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderRadius: 16,
+    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 16,
   },
   actionButton: {
-    marginVertical: 8,
+    marginBottom: 12,
+    borderRadius: 12,
+    elevation: 0,
   },
-  logoutButton: {
-    alignSelf: 'flex-start',
-    marginTop: 8,
+  actionButtonContent: {
+    paddingVertical: 8,
   },
-  logoutActionButton: {
-    borderColor: '#d32f2f',
+
+  signOutCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 16,
+    elevation: 1,
+  },
+  signOutButton: {
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+
+  // Auth Screen Styles
+  authHeader: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  authHeaderContent: {
+    alignItems: "center",
+  },
+  authTitle: {
+    fontSize: 28,
+    fontWeight: "700",
     marginTop: 16,
+    marginBottom: 8,
+    textAlign: "center",
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+  authSubtitle: {
+    fontSize: 16,
+    fontWeight: "400",
+    textAlign: "center",
+    opacity: 0.8,
+    lineHeight: 22,
+  },
+
+  authCard: {
+    margin: 20,
+    marginTop: 30,
+    borderRadius: 20,
+    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  authCardContent: {
+    paddingVertical: 30,
+    paddingHorizontal: 24,
+  },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: "600",
+    marginBottom: 24,
+    textAlign: "center",
+  },
+
+  inputContainer: {
+    marginBottom: 20,
+  },
+  input: {
+    fontSize: 16,
+    backgroundColor: "transparent",
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 12,
+  },
+
+  submitButton: {
+    marginTop: 8,
+    marginBottom: 24,
+    borderRadius: 12,
+    elevation: 3,
+  },
+  submitButtonContent: {
+    paddingVertical: 12,
+  },
+
+  toggleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    flexWrap: "wrap",
+  },
+  toggleText: {
+    fontSize: 14,
+    marginRight: 4,
   },
 });

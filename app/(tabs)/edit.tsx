@@ -10,7 +10,8 @@ import {
 } from "react-native-paper";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import ProductForm from "../../components/ProductForm";
-import { useAuth, useProducts } from "../../hooks/useDatabase";
+import { useAuth } from "../../contexts/AuthContext";
+import { useProducts } from "../../hooks/useDatabase";
 import { ProductFormValues } from "../../utils/validation";
 
 export default function EditProductScreen() {
@@ -26,7 +27,7 @@ export default function EditProductScreen() {
     deleteProduct,
     getProductById,
     loading: productsLoading,
-  } = useProducts(currentUser?.id || 0);
+  } = useProducts(currentUser?.id);
 
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);

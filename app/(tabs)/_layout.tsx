@@ -1,20 +1,28 @@
-import { Tabs } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useAuth } from '../../hooks/useDatabase';
+import { Tabs } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
     return (
-      <Tabs screenOptions={{ tabBarStyle: { display: 'none' } }}>
+      <Tabs
+        screenOptions={{
+          tabBarStyle: { display: "none" },
+          headerShown: false,
+        }}
+      >
         <Tabs.Screen
           name="register"
           options={{
-            title: 'Register',
+            title: "Authentication",
             headerShown: false,
           }}
         />
+        <Tabs.Screen name="index" options={{ href: null }} />
+        <Tabs.Screen name="create" options={{ href: null }} />
+        <Tabs.Screen name="edit" options={{ href: null }} />
       </Tabs>
     );
   }
@@ -22,50 +30,86 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#6750A4',
+        tabBarActiveTintColor: "#6750A4",
+        tabBarInactiveTintColor: "#79747E",
         headerStyle: {
-          backgroundColor: '#FEF7FF',
-        },
-        headerTintColor: '#6750A4',
-        tabBarStyle: {
-          backgroundColor: "#E8DEF8",
-          borderTopWidth: 0,
+          backgroundColor: "#FEF7FF",
           elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: "#E7E0EC",
+        },
+        headerTintColor: "#1D1B20",
+        headerTitleStyle: {
+          fontWeight: "600",
+          fontSize: 22,
+        },
+        tabBarStyle: {
+          backgroundColor: "#FEF7FF",
+          borderTopWidth: 1,
+          borderTopColor: "#E7E0EC",
+          paddingTop: 8,
+          paddingBottom: 8,
+          height: 70,
+          elevation: 8,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "500",
+          marginTop: 4,
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Products',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="list" size={size} color={color} />
+          title: "Products",
+          headerTitle: "My Products",
+          tabBarIcon: ({ color, size, focused }) => (
+            <MaterialIcons
+              name={focused ? "inventory" : "inventory-2"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="create"
         options={{
-          title: 'New Product',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="add" size={size} color={color} />
+          title: "Add Product",
+          headerTitle: "New Product",
+          tabBarIcon: ({ color, size, focused }) => (
+            <MaterialIcons
+              name={focused ? "add-circle" : "add-circle-outline"}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="register"
+        options={{
+          title: "Profile",
+          headerTitle: "My Profile",
+          tabBarIcon: ({ color, size, focused }) => (
+            <MaterialIcons
+              name={focused ? "account-circle" : "account-circle"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="edit"
         options={{
-          href: null, // Isso esconde a tela do tab bar
-          headerShown: false, // Se você quiser controlar o header dentro da tela
-        }}
-      />
-      <Tabs.Screen
-        name="register"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size} color={color} />
-          ),
+          href: null,
+          headerShown: false,
         }}
       />
     </Tabs>

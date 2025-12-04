@@ -15,14 +15,18 @@ import {
   Divider,
   Snackbar,
   Chip,
+  useTheme,
+  FAB,
 } from "react-native-paper";
 import { useRouter } from "expo-router";
-import { useAuth, useProducts } from "../../hooks/useDatabase";
+import { useAuth } from "../../contexts/AuthContext";
+import { useProducts } from "../../hooks/useDatabase";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
 export default function ProductListScreen() {
   const router = useRouter();
-  const { currentUser, logout } = useAuth();
+  const theme = useTheme();
+  const { currentUser } = useAuth();
   const {
     products,
     loading,
@@ -30,7 +34,7 @@ export default function ProductListScreen() {
     loadProducts,
     deleteProduct,
     getProductStats,
-  } = useProducts(currentUser?.id || 0);
+  } = useProducts(currentUser?.id);
   const [refreshing, setRefreshing] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -46,7 +50,7 @@ export default function ProductListScreen() {
       await loadProducts();
       const productStats = await getProductStats();
       setStats(productStats);
-    } catch (error) {
+    } catch (err) {
       showSnackbar("Failed to refresh products");
     } finally {
       setRefreshing(false);
@@ -102,32 +106,81 @@ export default function ProductListScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        showsVerticalScrollIndicator={false}
       >
         {/* Stats Section */}
-        <Card style={styles.statsCard}>
+        <Card
+          style={[styles.statsCard, { backgroundColor: theme.colors.surface }]}
+          elevation={2}
+        >
           <Card.Content>
-            <Title>Product Overview</Title>
+            <Title style={{ color: theme.colors.onSurface }}>
+              Product Overview
+            </Title>
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{stats.total}</Text>
-                <Text style={styles.statLabel}>Total</Text>
+                <Text
+                  style={[styles.statNumber, { color: theme.colors.primary }]}
+                >
+                  {stats.total}
+                </Text>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  Total
+                </Text>
               </View>
-              <Divider style={styles.divider} />
+              <Divider
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.outlineVariant },
+                ]}
+              />
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{stats.active}</Text>
-                <Text style={styles.statLabel}>Active</Text>
+                <Text
+                  style={[styles.statNumber, { color: theme.colors.primary }]}
+                >
+                  {stats.active}
+                </Text>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  Active
+                </Text>
               </View>
-              <Divider style={styles.divider} />
+              <Divider
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.outlineVariant },
+                ]}
+              />
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, styles.lowStock]}>
+                <Text
+                  style={[styles.statNumber, { color: theme.colors.error }]}
+                >
                   {stats.lowStock}
                 </Text>
-                <Text style={styles.statLabel}>Low Stock</Text>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  Low Stock
+                </Text>
               </View>
             </View>
           </Card.Content>
@@ -135,23 +188,48 @@ export default function ProductListScreen() {
 
         {/* Product List */}
         {error ? (
-          <Card style={styles.errorCard}>
+          <Card
+            style={[
+              styles.errorCard,
+              { backgroundColor: theme.colors.errorContainer },
+            ]}
+            elevation={1}
+          >
             <Card.Content>
-              <Paragraph style={styles.errorText}>{error}</Paragraph>
+              <Paragraph
+                style={[
+                  styles.errorText,
+                  { color: theme.colors.onErrorContainer },
+                ]}
+              >
+                {error}
+              </Paragraph>
               <Button
                 mode="contained"
                 onPress={() => loadProducts()}
-                style={styles.retryButton}
+                style={[
+                  styles.retryButton,
+                  { backgroundColor: theme.colors.error },
+                ]}
+                labelStyle={{ color: theme.colors.onError }}
               >
                 Retry
               </Button>
             </Card.Content>
           </Card>
         ) : products.length === 0 ? (
-          <Card style={styles.emptyCard}>
+          <Card
+            style={[
+              styles.emptyCard,
+              { backgroundColor: theme.colors.surfaceVariant },
+            ]}
+            elevation={1}
+          >
             <Card.Content style={styles.emptyContent}>
-              <Title>No Products Found</Title>
-              <Paragraph>
+              <Title style={{ color: theme.colors.onSurface }}>
+                No Products Found
+              </Title>
+              <Paragraph style={{ color: theme.colors.onSurfaceVariant }}>
                 You haven&apos;t added any products yet. Tap the + button to add
                 your first product.
               </Paragraph>
@@ -159,26 +237,54 @@ export default function ProductListScreen() {
           </Card>
         ) : (
           products.map((product) => (
-            <Card key={product.id} style={styles.productCard}>
+            <Card
+              key={product.id}
+              style={[
+                styles.productCard,
+                { backgroundColor: theme.colors.surface },
+              ]}
+              elevation={2}
+            >
               <Card.Content>
                 <View style={styles.cardHeader}>
-                  <Title style={styles.productName}>{product.name}</Title>
+                  <Title
+                    style={[
+                      styles.productName,
+                      { color: theme.colors.onSurface },
+                    ]}
+                  >
+                    {product.name}
+                  </Title>
                   <Chip
                     icon={product.active ? "check" : "close"}
                     mode="outlined"
                     style={[
                       styles.statusChip,
-                      product.active ? styles.activeChip : styles.inactiveChip,
+                      product.active
+                        ? {
+                            backgroundColor: "#E8F3E8",
+                            borderColor: "#4CAF50",
+                          }
+                        : {
+                            backgroundColor: theme.colors.errorContainer,
+                            borderColor: theme.colors.error,
+                          },
                     ]}
-                    textStyle={
-                      product.active ? styles.activeText : styles.inactiveText
-                    }
+                    textStyle={{
+                      color: product.active ? "#4CAF50" : theme.colors.error,
+                      fontWeight: "500",
+                    }}
                   >
                     {product.active ? "Active" : "Inactive"}
                   </Chip>
                 </View>
                 {product.description ? (
-                  <Paragraph style={styles.description}>
+                  <Paragraph
+                    style={[
+                      styles.description,
+                      { color: theme.colors.onSurfaceVariant },
+                    ]}
+                  >
                     {product.description}
                   </Paragraph>
                 ) : null}
@@ -195,25 +301,37 @@ export default function ProductListScreen() {
                     }
                     style={[
                       styles.quantityChip,
-                      product.quantity === 0 && styles.outOfStockChip,
+                      product.quantity === 0 && {
+                        backgroundColor: theme.colors.errorContainer,
+                      },
                       product.quantity < 5 &&
-                        product.quantity > 0 &&
-                        styles.criticalQuantityChip,
+                        product.quantity > 0 && {
+                          backgroundColor: theme.colors.errorContainer,
+                        },
                       product.quantity < 10 &&
-                        product.quantity >= 5 &&
-                        styles.lowQuantityChip,
-                      product.quantity >= 10 && styles.normalQuantityChip,
+                        product.quantity >= 5 && {
+                          backgroundColor: "#FFF3E0",
+                        },
+                      product.quantity >= 10 && {
+                        backgroundColor: theme.colors.primaryContainer,
+                      },
                     ]}
                     textStyle={[
                       styles.quantityChipText,
-                      product.quantity === 0 && styles.outOfStockChipText,
+                      product.quantity === 0 && {
+                        color: theme.colors.onErrorContainer,
+                      },
                       product.quantity < 5 &&
-                        product.quantity > 0 &&
-                        styles.criticalQuantityChipText,
+                        product.quantity > 0 && {
+                          color: theme.colors.onErrorContainer,
+                        },
                       product.quantity < 10 &&
-                        product.quantity >= 5 &&
-                        styles.lowQuantityChipText,
-                      product.quantity >= 10 && styles.normalQuantityChipText,
+                        product.quantity >= 5 && {
+                          color: "#EF6C00",
+                        },
+                      product.quantity >= 10 && {
+                        color: theme.colors.onPrimaryContainer,
+                      },
                     ]}
                     //TODO: fix this
                     // iconStyle={{
@@ -228,20 +346,33 @@ export default function ProductListScreen() {
                 </View>
               </Card.Content>
               <Card.Actions>
-                <Text style={styles.dateText}>
+                <Text
+                  style={[
+                    styles.dateText,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
                   Added: {new Date(product.createdAt).toLocaleDateString()}
                 </Text>
                 <Button
                   mode="outlined"
                   onPress={() => handleEdit(product.id)}
-                  style={styles.actionButton}
+                  style={[
+                    styles.actionButton,
+                    { borderColor: theme.colors.primary },
+                  ]}
+                  labelStyle={{ color: theme.colors.primary }}
                 >
                   Edit
                 </Button>
                 <Button
                   mode="contained"
                   onPress={() => handleDelete(product.id, product.name)}
-                  style={[styles.actionButton, styles.deleteButton]}
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: theme.colors.error },
+                  ]}
+                  labelStyle={{ color: theme.colors.onError }}
                 >
                   Delete
                 </Button>
@@ -251,12 +382,13 @@ export default function ProductListScreen() {
         )}
       </ScrollView>
 
-      {/* <FAB */}
-      {/*   icon="plus" */}
-      {/*   style={styles.fab} */}
-      {/*   onPress={() => router.push('/create')} */}
-      {/*   label="New Product" */}
-      {/* /> */}
+      <FAB
+        icon="plus"
+        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        color={theme.colors.onPrimary}
+        onPress={() => router.push("/create")}
+        label="New Product"
+      />
 
       <Snackbar
         visible={snackbarVisible}
@@ -265,9 +397,13 @@ export default function ProductListScreen() {
         action={{
           label: "OK",
           onPress: () => setSnackbarVisible(false),
+          labelStyle: { color: theme.colors.inversePrimary },
         }}
+        style={{ backgroundColor: theme.colors.inverseSurface }}
       >
-        {snackbarMessage}
+        <Text style={{ color: theme.colors.inverseOnSurface }}>
+          {snackbarMessage}
+        </Text>
       </Snackbar>
     </View>
   );
@@ -276,16 +412,12 @@ export default function ProductListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fef7ff", // M3 surface
   },
 
   statsCard: {
     margin: 16,
     padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 16, // M3 rounded corners
-    elevation: 1,
-    shadowOpacity: 0.1,
+    borderRadius: 20,
   },
 
   statsContainer: {
@@ -303,32 +435,25 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#6750A4", // M3 primary
   },
 
   statLabel: {
     fontSize: 12,
-    color: "#49454F", // M3 on-surface-variant
     marginTop: 4,
-  },
-
-  lowStock: {
-    color: "#B3261E", // M3 error
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
 
   divider: {
     width: 1,
     height: 40,
-    backgroundColor: "#E7E0EC", // M3 outline-variant
   },
 
   productCard: {
     marginHorizontal: 16,
     marginBottom: 12,
-    backgroundColor: "#fff",
     padding: 16,
-    borderRadius: 16,
-    elevation: 1,
+    borderRadius: 20,
   },
 
   cardHeader: {
@@ -343,37 +468,17 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontSize: 16,
     fontWeight: "500",
-    color: "#1D1B20", // M3 on-surface
   },
 
   statusChip: {
     borderWidth: 1,
-    borderRadius: 50,
-    paddingHorizontal: 5,
-    paddingVertical: 0,
-  },
-
-  activeChip: {
-    backgroundColor: "#E8F3E8",
-    borderColor: "#4CAF50",
-  },
-
-  inactiveChip: {
-    backgroundColor: "#FCEEEE",
-    borderColor: "#E53935",
-  },
-
-  activeText: {
-    color: "#2E7D32", // green text
-  },
-
-  inactiveText: {
-    color: "#C62828", // red text
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
   },
 
   description: {
     marginBottom: 12,
-    color: "#49454F",
     fontSize: 14,
   },
 
@@ -387,7 +492,7 @@ const styles = StyleSheet.create({
   quantityChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 0,
     borderColor: "transparent",
     flexDirection: "row",
@@ -400,77 +505,32 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
-  normalQuantityChip: {
-    backgroundColor: "#E8DEF8", // Secondary container
-  },
-
-  normalQuantityChipText: {
-    color: "#6750A4", // Primary color
-  },
-
-  lowQuantityChip: {
-    backgroundColor: "#FFF3E0", // Warning container
-    borderColor: "#FF9800", // Warning color
-  },
-
-  lowQuantityChipText: {
-    color: "#EF6C00", // Warning text
-    fontWeight: "700",
-  },
-
-  criticalQuantityChip: {
-    backgroundColor: "#FFE4E6", // Error container variant
-    borderColor: "#BA1A1A", // Error color
-  },
-
-  criticalQuantityChipText: {
-    color: "#BA1A1A", // Error color
-    fontWeight: "700",
-  },
-
-  outOfStockChip: {
-    backgroundColor: "#FFEBEE", // Error container
-    borderColor: "#C62828", // Darker error
-  },
-
-  outOfStockChipText: {
-    color: "#C62828", // Darker error text
-    fontWeight: "700",
-  },
-
   dateText: {
     fontSize: 12,
-    color: "#6D6D6D",
     flex: 1,
   },
 
   actionButton: {
-    borderWidth: 0,
-    backgroundColor: "#E8DEF8", // Secondary container
     marginRight: 8,
-  },
-
-  deleteButton: {
-    backgroundColor: "#B3261E", // M3 error
+    borderRadius: 12,
   },
 
   // ======= Error Card ======= //
 
   errorCard: {
     margin: 16,
-    backgroundColor: "#F9DEDC", // M3 error-container
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 20,
   },
 
   errorText: {
-    color: "#410E0B", // M3 on-error-container
     marginBottom: 12,
     fontWeight: "500",
   },
 
   retryButton: {
     marginTop: 8,
+    borderRadius: 12,
   },
 
   // ===== Empty State ===== //
@@ -479,6 +539,7 @@ const styles = StyleSheet.create({
     margin: 16,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 20,
   },
 
   emptyContent: {
@@ -490,9 +551,7 @@ const styles = StyleSheet.create({
     margin: 16,
     marginTop: 8,
     padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    elevation: 1,
+    borderRadius: 20,
   },
 
   logoutButton: {
@@ -504,5 +563,6 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+    borderRadius: 16,
   },
 });

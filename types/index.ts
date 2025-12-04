@@ -16,11 +16,14 @@ export interface Product {
   createdAt: string;
 }
 
-export type ProductFormData = Omit<Product, 'id' | 'createdAt' | 'active'> & {
-  active?: boolean;
+export type ProductFormData = {
+  name: string;
+  description?: string;
+  quantity: number;
+  active: boolean;
 };
 
-export type UserFormData = Omit<User, 'id' | 'createdAt'>;
+export type UserFormData = Omit<User, "id" | "createdAt">;
 
 export interface DatabaseResult {
   insertId?: number;

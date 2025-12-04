@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import database from "../database";
 import { UserOperations, ProductOperations } from "../database/operations";
 import { User, Product, ProductFormData, UserFormData } from "../types";
@@ -26,20 +26,25 @@ export const useDatabase = () => {
   };
 };
 
-export const useProducts = (userId: number) => {
+export const useProducts = (userId: number | undefined) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isInitialized, ProductOperations } = useDatabase();
+  const hasLoadedRef = useRef(false);
 
   const loadProducts = async (showInactive = false) => {
-    if (!isInitialized || !userId) return;
+    if (!isInitialized || !userId || userId === 0) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
       const data = await ProductOperations.getAll(userId, showInactive);
       setProducts(data);
+      hasLoadedRef.current = true;
     } catch (err) {
       setError("Failed to load products");
       console.error(err);
@@ -49,6 +54,9 @@ export const useProducts = (userId: number) => {
   };
 
   const addProduct = async (productData: ProductFormData) => {
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
     try {
       const id = await ProductOperations.create(productData, userId);
       await loadProducts();
@@ -63,6 +71,9 @@ export const useProducts = (userId: number) => {
     id: number,
     productData: Partial<ProductFormData>,
   ) => {
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
     try {
       const success = await ProductOperations.update(id, productData, userId);
       if (success) {
@@ -76,6 +87,9 @@ export const useProducts = (userId: number) => {
   };
 
   const deleteProduct = async (id: number) => {
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
     try {
       const success = await ProductOperations.softDelete(id, userId);
       if (success) {
@@ -89,6 +103,9 @@ export const useProducts = (userId: number) => {
   };
 
   const getProductById = async (id: number) => {
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
     try {
       return await ProductOperations.getById(id, userId);
     } catch (err) {
@@ -98,6 +115,9 @@ export const useProducts = (userId: number) => {
   };
 
   const getProductStats = async () => {
+    if (!userId) {
+      return { total: 0, active: 0, lowStock: 0 };
+    }
     try {
       return await ProductOperations.getStats(userId);
     } catch (err) {
@@ -107,8 +127,13 @@ export const useProducts = (userId: number) => {
   };
 
   useEffect(() => {
-    if (isInitialized && userId) {
+    const shouldLoad =
+      isInitialized && userId && userId !== 0 && !hasLoadedRef.current;
+
+    if (shouldLoad) {
       loadProducts();
+    } else if (!isInitialized || !userId || userId === 0) {
+      setLoading(false);
     }
   }, [isInitialized, userId]);
 
@@ -125,88 +150,4 @@ export const useProducts = (userId: number) => {
   };
 };
 
-export const useAuth = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { isInitialized, UserOperations } = useDatabase();
-
-  const register = async (userData: UserFormData) => {
-    if (!isInitialized) {
-      throw new Error("Database not initialized");
-    }
-
-    try {
-      setLoading(true);
-
-      // Check if email already exists
-      const existingUser = await UserOperations.getByEmail(userData.email);
-      if (existingUser) {
-        throw new Error("Email already registered");
-      }
-
-      const userId = await UserOperations.create(userData);
-
-      // Get the created user
-      const user = await UserOperations.getByEmail(userData.email);
-      setCurrentUser(user);
-
-      return userId;
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const login = async (email: string, password: string) => {
-    if (!isInitialized) {
-      throw new Error("Database not initialized");
-    }
-
-    try {
-      setLoading(true);
-      const user = await UserOperations.verifyCredentials(email, password);
-      if (!user) {
-        throw new Error("Invalid email or password");
-      }
-      setCurrentUser(user);
-      return user;
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = () => {
-    setCurrentUser(null);
-  };
-
-  const checkExistingUser = async () => {
-    if (!isInitialized) return;
-
-    try {
-      const users = await UserOperations.getAll();
-      if (users.length > 0) {
-        setCurrentUser(users[0]); // Auto-login first user for simplicity
-      }
-    } catch (error) {
-      console.error("Error checking existing users:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (isInitialized) {
-      checkExistingUser();
-    }
-  }, [isInitialized]);
-
-  return {
-    currentUser,
-    loading,
-    register,
-    login,
-    logout,
-    isAuthenticated: !!currentUser,
-  };
-};
+// Auth logic moved to AuthContext
