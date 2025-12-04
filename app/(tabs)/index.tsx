@@ -297,9 +297,9 @@ export default function ProductListScreen() {
                       product.quantity === 0
                         ? "alert-circle-outline"
                         : product.quantity < 5
-                          ? "alert-circle"
+                          ? "alert"
                           : product.quantity < 10
-                            ? "alert"
+                            ? "alert-circle"
                             : "package-variant"
                     }
                     style={[
