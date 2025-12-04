@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TextInput, Button, Text, HelperText } from "react-native-paper";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -22,12 +23,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
   theme,
   submitText = "Create Product",
 }) => {
+  const insets = useSafeAreaInsets();
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<ProductFormValues>({
+  } = useForm({
     resolver: yupResolver(productSchema),
     defaultValues: {
       name: initialData?.name || "",
@@ -49,19 +51,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [initialData, reset]);
 
-  const handleFormSubmit = async (data: ProductFormValues) => {
-    try {
-      await onSubmit(data);
-      if (!initialData?.name) {
-        reset(); // Clear form after successful create
-      }
-    } catch (error) {
-      // Error is handled by parent component
+  const handleFormSubmit = (data: ProductFormValues) => {
+    onSubmit(data);
+    if (!initialData?.name) {
+      reset(); // Clear form after successful create
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+    >
       <View style={styles.form}>
         <Controller
           control={control}
@@ -114,7 +115,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <View style={styles.field}>
               <TextInput
                 label="Quantity"
-                value={value.toString()}
+                value={value?.toString() || "0"}
                 onChangeText={(text) => onChange(parseInt(text) || 0)}
                 mode="outlined"
                 keyboardType="numeric"
@@ -151,10 +152,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         <Button
           mode="contained"
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit((data) =>
+            handleFormSubmit(data as ProductFormValues),
+          )}
           loading={loading}
           disabled={loading}
-          style={styles.submitButton}
+          style={styles.button}
         >
           {submitText}
         </Button>
@@ -180,7 +183,7 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
   },
-  submitButton: {
+  button: {
     marginTop: 20,
     paddingVertical: 8,
   },

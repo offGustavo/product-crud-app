@@ -7,6 +7,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { PaperProvider } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { MD3Colors, MD3ColorsDark } from "../constants/theme";
@@ -63,23 +64,25 @@ function AppContent() {
   const isDark = colorScheme === "dark";
 
   return (
-    <PaperProvider theme={isDark ? PaperThemeDark : PaperThemeLight}>
-      <ThemeProvider value={isDark ? MaterialThemeDark : MaterialThemeLight}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
+    <SafeAreaProvider>
+      <PaperProvider theme={isDark ? PaperThemeDark : PaperThemeLight}>
+        <ThemeProvider value={isDark ? MaterialThemeDark : MaterialThemeLight}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="modal"
+              options={{ presentation: "modal", title: "Modal" }}
+            />
+          </Stack>
+          <StatusBar
+            style={isDark ? "light" : "dark"}
+            backgroundColor={
+              isDark ? MD3ColorsDark.background : MD3Colors.background
+            }
           />
-        </Stack>
-        <StatusBar
-          style={isDark ? "light" : "dark"}
-          backgroundColor={
-            isDark ? MD3ColorsDark.background : MD3Colors.background
-          }
-        />
-      </ThemeProvider>
-    </PaperProvider>
+        </ThemeProvider>
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }
 

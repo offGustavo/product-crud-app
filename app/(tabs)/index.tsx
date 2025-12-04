@@ -6,6 +6,7 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Card,
   Title,
@@ -27,6 +28,7 @@ export default function ProductListScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { currentUser } = useAuth();
+  const insets = useSafeAreaInsets();
   const {
     products,
     loading,
@@ -114,6 +116,7 @@ export default function ProductListScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
       >
         {/* Stats Section */}
         <Card

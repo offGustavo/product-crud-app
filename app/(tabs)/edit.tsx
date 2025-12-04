@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Button,
   Appbar,
@@ -22,6 +23,7 @@ export default function EditProductScreen() {
     : null;
 
   const { currentUser } = useAuth();
+  const insets = useSafeAreaInsets();
   const {
     updateProduct,
     deleteProduct,
@@ -159,7 +161,13 @@ export default function EditProductScreen() {
   if (!productId) {
     return (
       <View
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.colors.background,
+            paddingBottom: insets.bottom + 20,
+          },
+        ]}
       >
         <Appbar.Header theme={theme}>
           <Appbar.BackAction onPress={() => router.back()} />
@@ -188,7 +196,13 @@ export default function EditProductScreen() {
   if (initialLoad) {
     return (
       <View
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.colors.background,
+            paddingBottom: insets.bottom + 20,
+          },
+        ]}
       >
         <Appbar.Header theme={theme}>
           <Appbar.BackAction onPress={() => router.back()} />
@@ -209,7 +223,13 @@ export default function EditProductScreen() {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.background,
+          paddingBottom: insets.bottom + 20,
+        },
+      ]}
     >
       <Appbar.Header theme={theme}>
         <Appbar.BackAction onPress={() => router.back()} />

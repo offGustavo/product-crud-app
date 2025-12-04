@@ -1,9 +1,11 @@
 import { Tabs } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts/AuthContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
+  const insets = useSafeAreaInsets();
 
   if (!isAuthenticated) {
     return (
@@ -49,8 +51,8 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: "#E7E0EC",
           paddingTop: 8,
-          paddingBottom: 8,
-          height: 70,
+          paddingBottom: Math.max(insets.bottom, 8),
+          height: 70 + Math.max(insets.bottom - 8, 0),
           elevation: 8,
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.1,

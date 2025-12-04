@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Appbar,
   Snackbar,
@@ -17,6 +18,7 @@ export default function CreateProductScreen() {
   const router = useRouter();
   const { currentUser } = useAuth();
   const { addProduct, loading: productsLoading } = useProducts(currentUser?.id);
+  const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -59,7 +61,13 @@ export default function CreateProductScreen() {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.background,
+          paddingBottom: insets.bottom + 20,
+        },
+      ]}
     >
       <Appbar.Header theme={theme}>
         <Appbar.BackAction onPress={() => router.back()} />

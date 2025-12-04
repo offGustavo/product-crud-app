@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Card,
   Title,
@@ -45,6 +46,7 @@ const REGISTER_DEFAULT_VALUES: UserFormValues = {
 export default function AuthScreen() {
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const {
     currentUser,
     register,
@@ -152,6 +154,7 @@ export default function AuthScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
         >
           {/* Header */}
           <Surface
@@ -336,6 +339,7 @@ export default function AuthScreen() {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
       >
         {/* Header */}
         <Surface
