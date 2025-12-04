@@ -1,26 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
   ScrollView,
   RefreshControl,
   Alert,
-} from 'react-native';
+} from "react-native";
 import {
   Card,
   Title,
   Paragraph,
   Button,
-  FAB,
   Text,
   Divider,
   Snackbar,
   Chip,
-} from 'react-native-paper';
-import { useRouter } from 'expo-router';
-import { useAuth } from '../../hooks/useDatabase';
-import { useProducts } from '../../hooks/useDatabase';
-import LoadingSpinner from '../../components/LoadingSpinner';
+} from "react-native-paper";
+import { useRouter } from "expo-router";
+import { useAuth, useProducts } from "../../hooks/useDatabase";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 export default function ProductListScreen() {
   const router = useRouter();
@@ -35,7 +33,7 @@ export default function ProductListScreen() {
   } = useProducts(currentUser?.id || 0);
   const [refreshing, setRefreshing] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [stats, setStats] = useState<{
     total: number;
     active: number;
@@ -49,11 +47,11 @@ export default function ProductListScreen() {
       const productStats = await getProductStats();
       setStats(productStats);
     } catch (error) {
-      showSnackbar('Failed to refresh products');
+      showSnackbar("Failed to refresh products");
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [loadProducts, getProductStats]);
 
   React.useEffect(() => {
     const loadStats = async () => {
@@ -63,7 +61,7 @@ export default function ProductListScreen() {
       }
     };
     loadStats();
-  }, [currentUser?.id, products]);
+  }, [currentUser?.id, products, getProductStats]);
 
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
@@ -72,45 +70,31 @@ export default function ProductListScreen() {
 
   const handleDelete = async (productId: number, productName: string) => {
     Alert.alert(
-      'Delete Product',
+      "Delete Product",
       `Are you sure you want to delete "${productName}"?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: async () => {
             try {
               await deleteProduct(productId);
-              showSnackbar('Product deleted successfully');
-            } catch (error) {
-              showSnackbar('Failed to delete product');
+              showSnackbar("Product deleted successfully");
+            } catch (err) {
+              showSnackbar("Failed to delete product");
             }
           },
         },
-      ]
+      ],
     );
   };
 
-const handleEdit = (productId: number) => {
-  router.push({
-    pathname: '/edit',
-    params: { productId: productId.toString() },
-  });
-};
-
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: () => {
-          logout();
-          router.replace('/register');
-        },
-      },
-    ]);
+  const handleEdit = (productId: number) => {
+    router.push({
+      pathname: "/(tabs)/edit",
+      params: { productId: productId.toString() },
+    });
   };
 
   if (loading && !refreshing) {
@@ -156,7 +140,7 @@ const handleEdit = (productId: number) => {
               <Paragraph style={styles.errorText}>{error}</Paragraph>
               <Button
                 mode="contained"
-                onPress={loadProducts}
+                onPress={() => loadProducts()}
                 style={styles.retryButton}
               >
                 Retry
@@ -168,7 +152,7 @@ const handleEdit = (productId: number) => {
             <Card.Content style={styles.emptyContent}>
               <Title>No Products Found</Title>
               <Paragraph>
-                You haven't added any products yet. Tap the + button to add
+                You haven&apos;t added any products yet. Tap the + button to add
                 your first product.
               </Paragraph>
             </Card.Content>
@@ -180,15 +164,17 @@ const handleEdit = (productId: number) => {
                 <View style={styles.cardHeader}>
                   <Title style={styles.productName}>{product.name}</Title>
                   <Chip
-                    icon={product.active ? 'check' : 'close'}
+                    icon={product.active ? "check" : "close"}
                     mode="outlined"
                     style={[
                       styles.statusChip,
                       product.active ? styles.activeChip : styles.inactiveChip,
                     ]}
-                    textStyle={product.active ? styles.activeText : styles.inactiveText}
+                    textStyle={
+                      product.active ? styles.activeText : styles.inactiveText
+                    }
                   >
-                    {product.active ? 'Active' : 'Inactive'}
+                    {product.active ? "Active" : "Inactive"}
                   </Chip>
                 </View>
                 {product.description ? (
@@ -199,41 +185,52 @@ const handleEdit = (productId: number) => {
                 <View style={styles.cardFooter}>
                   <Chip
                     icon={
-                      product.quantity === 0 ? "alert-circle-outline" :
-                        product.quantity < 5 ? "alert-circle" :
-                          product.quantity < 10 ? "alert" :
-                            "package-variant"
+                      product.quantity === 0
+                        ? "alert-circle-outline"
+                        : product.quantity < 5
+                          ? "alert-circle"
+                          : product.quantity < 10
+                            ? "alert"
+                            : "package-variant"
                     }
                     style={[
                       styles.quantityChip,
                       product.quantity === 0 && styles.outOfStockChip,
-                      product.quantity < 5 && product.quantity > 0 && styles.criticalQuantityChip,
-                      product.quantity < 10 && product.quantity >= 5 && styles.lowQuantityChip,
-                      product.quantity >= 10 && styles.normalQuantityChip
+                      product.quantity < 5 &&
+                        product.quantity > 0 &&
+                        styles.criticalQuantityChip,
+                      product.quantity < 10 &&
+                        product.quantity >= 5 &&
+                        styles.lowQuantityChip,
+                      product.quantity >= 10 && styles.normalQuantityChip,
                     ]}
                     textStyle={[
                       styles.quantityChipText,
                       product.quantity === 0 && styles.outOfStockChipText,
-                      product.quantity < 5 && product.quantity > 0 && styles.criticalQuantityChipText,
-                      product.quantity < 10 && product.quantity >= 5 && styles.lowQuantityChipText,
-                      product.quantity >= 10 && styles.normalQuantityChipText
+                      product.quantity < 5 &&
+                        product.quantity > 0 &&
+                        styles.criticalQuantityChipText,
+                      product.quantity < 10 &&
+                        product.quantity >= 5 &&
+                        styles.lowQuantityChipText,
+                      product.quantity >= 10 && styles.normalQuantityChipText,
                     ]}
-                        //TODO: fix this
-                        // iconStyle={{
-                        //   color: product.quantity === 0 ? "#BA1A1A" :
-                        //     product.quantity < 5 ? "#BA1A1A" :
-                        //       product.quantity < 10 ? "#FF9800" :
-                        //         "#6750A4"
-                        // }}
+                    //TODO: fix this
+                    // iconStyle={{
+                    //   color: product.quantity === 0 ? "#BA1A1A" :
+                    //     product.quantity < 5 ? "#BA1A1A" :
+                    //       product.quantity < 10 ? "#FF9800" :
+                    //         "#6750A4"
+                    // }}
                   >
                     Qty: {product.quantity}
                   </Chip>
                 </View>
               </Card.Content>
               <Card.Actions>
-                  <Text style={styles.dateText}>
-                    Added: {new Date(product.createdAt).toLocaleDateString()}
-                  </Text>
+                <Text style={styles.dateText}>
+                  Added: {new Date(product.createdAt).toLocaleDateString()}
+                </Text>
                 <Button
                   mode="outlined"
                   onPress={() => handleEdit(product.id)}
@@ -252,7 +249,6 @@ const handleEdit = (productId: number) => {
             </Card>
           ))
         )}
-
       </ScrollView>
 
       {/* <FAB */}
@@ -267,7 +263,7 @@ const handleEdit = (productId: number) => {
         onDismiss={() => setSnackbarVisible(false)}
         duration={3000}
         action={{
-          label: 'OK',
+          label: "OK",
           onPress: () => setSnackbarVisible(false),
         }}
       >
@@ -394,8 +390,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 0,
     borderColor: "transparent",
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   quantityChipText: {
@@ -504,10 +500,9 @@ const styles = StyleSheet.create({
   },
 
   fab: {
-    position: 'absolute',
+    position: "absolute",
     margin: 16,
     right: 0,
     bottom: 0,
   },
-
 });

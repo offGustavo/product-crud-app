@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { TextInput, Button, Text, HelperText } from 'react-native-paper';
-import { Controller, useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { productSchema, ProductFormValues } from '../utils/validation';
+import React, { useEffect } from "react";
+import { View, StyleSheet, ScrollView } from "react-native";
+import { TextInput, Button, Text, HelperText } from "react-native-paper";
+import { Controller, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { productSchema, ProductFormValues } from "../utils/validation";
 
 interface ProductFormProps {
   onSubmit: (data: ProductFormValues) => void;
@@ -11,7 +11,7 @@ interface ProductFormProps {
   loading?: boolean;
   userId: number;
   theme?: any;
-  submitText?: string; 
+  submitText?: string;
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({
@@ -20,22 +20,34 @@ const ProductForm: React.FC<ProductFormProps> = ({
   loading,
   userId,
   theme,
-  submitText = 'Create Product' 
+  submitText = "Create Product",
 }) => {
   const {
     control,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
   } = useForm<ProductFormValues>({
     resolver: yupResolver(productSchema),
     defaultValues: {
-      name: initialData?.name || '',
-      description: initialData?.description || '',
+      name: initialData?.name || "",
+      description: initialData?.description || "",
       quantity: initialData?.quantity || 0,
       active: initialData?.active ?? true,
-    }
+    },
   });
+
+  // Reset form quando initialData mudar
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        name: initialData.name || "",
+        description: initialData.description || "",
+        quantity: initialData.quantity || 0,
+        active: initialData.active ?? true,
+      });
+    }
+  }, [initialData, reset]);
 
   const handleFormSubmit = async (data: ProductFormValues) => {
     try {
@@ -65,9 +77,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 disabled={loading}
               />
               {errors.name && (
-                <HelperText type="error">
-                  {errors.name.message}
-                </HelperText>
+                <HelperText type="error">{errors.name.message}</HelperText>
               )}
             </View>
           )}
@@ -112,9 +122,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 disabled={loading}
               />
               {errors.quantity && (
-                <HelperText type="error">
-                  {errors.quantity.message}
-                </HelperText>
+                <HelperText type="error">{errors.quantity.message}</HelperText>
               )}
             </View>
           )}
@@ -127,14 +135,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
             render={({ field: { onChange, value } }) => (
               <View style={styles.field}>
                 <Button
-                  mode={value ? 'contained' : 'outlined'}
+                  mode={value ? "contained" : "outlined"}
                   onPress={() => onChange(!value)}
                   disabled={loading}
                 >
-                  {value ? 'Active' : 'Inactive'}
+                  {value ? "Active" : "Inactive"}
                 </Button>
                 <Text style={styles.statusText}>
-                  Status: {value ? 'Active' : 'Inactive'}
+                  Status: {value ? "Active" : "Inactive"}
                 </Text>
               </View>
             )}
@@ -169,8 +177,8 @@ const styles = StyleSheet.create({
   statusText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   submitButton: {
     marginTop: 20,

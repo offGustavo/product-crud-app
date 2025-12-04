@@ -1,83 +1,79 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { Button, Appbar, Snackbar, Chip, Text, useTheme } from 'react-native-paper';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import ProductForm from '../../components/ProductForm';
-import { useAuth } from '../../hooks/useDatabase';
-import { useProducts } from '../../hooks/useDatabase';
-import { ProductFormValues } from '../../utils/validation';
-
+import React, { useState, useEffect, useRef } from "react";
+import { View, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import {
+  Button,
+  Appbar,
+  Snackbar,
+  Chip,
+  Text,
+  useTheme,
+} from "react-native-paper";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import ProductForm from "../../components/ProductForm";
+import { useAuth, useProducts } from "../../hooks/useDatabase";
+import { ProductFormValues } from "../../utils/validation";
 
 export default function EditProductScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const productId = params.productId ? parseInt(params.productId as string) : null;
+  const productId = params.productId
+    ? parseInt(params.productId as string)
+    : null;
 
   const { currentUser } = useAuth();
-  const { 
+  const {
     updateProduct,
     deleteProduct,
-    products,
+    getProductById,
     loading: productsLoading,
   } = useProducts(currentUser?.id || 0);
 
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [productData, setProductData] = useState<ProductFormValues | null>(null);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [productData, setProductData] = useState<ProductFormValues | null>(
+    null,
+  );
   const [initialLoad, setInitialLoad] = useState(true);
+  const loadedRef = useRef(false);
 
   const theme = useTheme();
 
-  // Função para carregar o produto específico
-  const loadProductData = async () => {
-    if (!productId || !currentUser) return;
-
-    try {
-      setInitialLoad(true);
-
-      // Buscar produto da lista
-      const product = products.find(p => p.id === productId);
-
-      if (product) {
-        setProductData({
-          name: product.name,
-          description: product.description || '',
-          quantity: product.quantity,
-          active: product.active
-        });
-      } else {
-        showSnackbar('Product not found');
-        setTimeout(() => router.back(), 1500);
-      }
-    } catch (error) {
-      showSnackbar('Failed to load product data');
-    } finally {
-      setInitialLoad(false);
-    }
-  };
-
-  // Carregar produto quando o ID mudar
+  // Carregar produto quando necessário
   useEffect(() => {
-    if (productId && currentUser) {
-      loadProductData();
+    if (!productId || !currentUser || loadedRef.current) {
+      return;
     }
+
+    const loadProductData = async () => {
+      try {
+        setInitialLoad(true);
+        loadedRef.current = true;
+
+        // Buscar produto diretamente do banco de dados
+        const product = await getProductById(productId);
+
+        if (product) {
+          setProductData({
+            name: product.name,
+            description: product.description || "",
+            quantity: product.quantity,
+            active: product.active,
+          });
+        } else {
+          showSnackbar("Product not found");
+          setTimeout(() => router.back(), 1500);
+        }
+      } catch (error) {
+        console.error("Error loading product:", error);
+        showSnackbar("Failed to load product data");
+      } finally {
+        setInitialLoad(false);
+      }
+    };
+
+    loadProductData();
   }, [productId, currentUser?.id]);
-
-  // Monitorar mudanças na lista de produtos
-  useEffect(() => {
-    if (productId && products.length > 0) {
-      const product = products.find(p => p.id === productId);
-      if (product && !productData) {
-        setProductData({
-          name: product.name,
-          description: product.description || '',
-          quantity: product.quantity,
-          active: product.active
-        });
-      }
-    }
-  }, [productId, products]);
 
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
@@ -86,12 +82,12 @@ export default function EditProductScreen() {
 
   const handleSubmit = async (data: ProductFormValues) => {
     if (!currentUser) {
-      showSnackbar('You must be logged in to edit products');
+      showSnackbar("You must be logged in to edit products");
       return;
     }
 
     if (!productId) {
-      showSnackbar('Invalid product ID');
+      showSnackbar("Invalid product ID");
       return;
     }
 
@@ -101,13 +97,13 @@ export default function EditProductScreen() {
       // Update existing product
       const success = await updateProduct(productId, data);
       if (success) {
-        showSnackbar('Product updated successfully');
+        showSnackbar("Product updated successfully");
         setTimeout(() => router.back(), 1500);
       } else {
-        showSnackbar('Failed to update product');
+        showSnackbar("Failed to update product");
       }
     } catch (error: any) {
-      showSnackbar(error.message || 'An error occurred');
+      showSnackbar(error.message || "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -117,24 +113,24 @@ export default function EditProductScreen() {
     if (!productId || !deleteProduct) return;
 
     Alert.alert(
-      'Delete Product',
-      'Are you sure you want to delete this product?',
+      "Delete Product",
+      "Are you sure you want to delete this product?",
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: async () => {
             try {
               await deleteProduct(productId);
-              showSnackbar('Product deleted successfully');
+              showSnackbar("Product deleted successfully");
               setTimeout(() => router.back(), 1500);
-            } catch (error) {
-              showSnackbar('Failed to delete product');
+            } catch (err) {
+              showSnackbar("Failed to delete product");
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -143,11 +139,17 @@ export default function EditProductScreen() {
 
     return (
       <Chip
-        style={isNormalQuantity ? styles.normalQuantityChip : styles.lowQuantityChip}
-        textStyle={isNormalQuantity ? styles.normalQuantityChipText : styles.lowQuantityChipText}
+        style={
+          isNormalQuantity ? styles.normalQuantityChip : styles.lowQuantityChip
+        }
+        textStyle={
+          isNormalQuantity
+            ? styles.normalQuantityChipText
+            : styles.lowQuantityChipText
+        }
         icon={isNormalQuantity ? "check-circle" : "alert-circle"}
       >
-        {isNormalQuantity ? 'In Stock' : 'Low Stock'}
+        {isNormalQuantity ? "In Stock" : "Low Stock"}
       </Chip>
     );
   };
@@ -155,11 +157,13 @@ export default function EditProductScreen() {
   // Se não houver productId, mostrar erro
   if (!productId) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
         <Appbar.Header theme={theme}>
           <Appbar.BackAction onPress={() => router.back()} />
-          <Appbar.Content 
-            title="Edit Product" 
+          <Appbar.Content
+            title="Edit Product"
             titleStyle={{ color: theme.colors.onSurface }}
           />
         </Appbar.Header>
@@ -182,11 +186,13 @@ export default function EditProductScreen() {
   // Se estiver carregando inicialmente, mostrar spinner
   if (initialLoad) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
         <Appbar.Header theme={theme}>
           <Appbar.BackAction onPress={() => router.back()} />
-          <Appbar.Content 
-            title="Edit Product" 
+          <Appbar.Content
+            title="Edit Product"
             titleStyle={{ color: theme.colors.onSurface }}
           />
         </Appbar.Header>
@@ -201,29 +207,36 @@ export default function EditProductScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <Appbar.Header theme={theme}>
         <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content 
-          title="Edit Product" 
+        <Appbar.Content
+          title="Edit Product"
           titleStyle={{ color: theme.colors.onSurface }}
         />
-        <Appbar.Action 
-          icon="delete" 
-          onPress={handleDelete} 
+        <Appbar.Action
+          icon="delete"
+          onPress={handleDelete}
           disabled={loading}
           color={theme.colors.error}
         />
       </Appbar.Header>
 
       {!currentUser ? (
-        <View style={[styles.authRequired, { backgroundColor: theme.colors.surface }]}>
+        <View
+          style={[
+            styles.authRequired,
+            { backgroundColor: theme.colors.surface },
+          ]}
+        >
           <Snackbar
             visible={true}
             onDismiss={() => {}}
             action={{
-              label: 'Login',
-              onPress: () => router.push('/register'),
+              label: "Login",
+              onPress: () => router.push("/register"),
             }}
             style={{ backgroundColor: theme.colors.primaryContainer }}
           >
@@ -256,7 +269,7 @@ export default function EditProductScreen() {
         onDismiss={() => setSnackbarVisible(false)}
         duration={3000}
         action={{
-          label: 'OK',
+          label: "OK",
           onPress: () => setSnackbarVisible(false),
         }}
         style={{ backgroundColor: theme.colors.inverseSurface }}
@@ -275,7 +288,7 @@ const styles = StyleSheet.create({
   },
   authRequired: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 20,
   },
   formContainer: {
@@ -284,7 +297,7 @@ const styles = StyleSheet.create({
   },
   chipContainer: {
     marginBottom: 16,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   normalQuantityChip: {
     backgroundColor: "#E8DEF8",
@@ -300,13 +313,13 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
 });

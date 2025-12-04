@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import database from '../database';
-import { UserOperations, ProductOperations } from '../database/operations';
-import { User, Product, ProductFormData, UserFormData } from '../types';
+import { useEffect, useState } from "react";
+import database from "../database";
+import { UserOperations, ProductOperations } from "../database/operations";
+import { User, Product, ProductFormData, UserFormData } from "../types";
 
 export const useDatabase = () => {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -12,7 +12,7 @@ export const useDatabase = () => {
         await database.init();
         setIsInitialized(true);
       } catch (error) {
-        console.error('Failed to initialize database:', error);
+        console.error("Failed to initialize database:", error);
       }
     };
 
@@ -22,7 +22,7 @@ export const useDatabase = () => {
   return {
     isInitialized,
     UserOperations,
-    ProductOperations
+    ProductOperations,
   };
 };
 
@@ -41,7 +41,7 @@ export const useProducts = (userId: number) => {
       const data = await ProductOperations.getAll(userId, showInactive);
       setProducts(data);
     } catch (err) {
-      setError('Failed to load products');
+      setError("Failed to load products");
       console.error(err);
     } finally {
       setLoading(false);
@@ -54,12 +54,15 @@ export const useProducts = (userId: number) => {
       await loadProducts();
       return id;
     } catch (err) {
-      setError('Failed to add product');
+      setError("Failed to add product");
       throw err;
     }
   };
 
-  const updateProduct = async (id: number, productData: Partial<ProductFormData>) => {
+  const updateProduct = async (
+    id: number,
+    productData: Partial<ProductFormData>,
+  ) => {
     try {
       const success = await ProductOperations.update(id, productData, userId);
       if (success) {
@@ -67,7 +70,7 @@ export const useProducts = (userId: number) => {
       }
       return success;
     } catch (err) {
-      setError('Failed to update product');
+      setError("Failed to update product");
       throw err;
     }
   };
@@ -80,7 +83,16 @@ export const useProducts = (userId: number) => {
       }
       return success;
     } catch (err) {
-      setError('Failed to delete product');
+      setError("Failed to delete product");
+      throw err;
+    }
+  };
+
+  const getProductById = async (id: number) => {
+    try {
+      return await ProductOperations.getById(id, userId);
+    } catch (err) {
+      setError("Failed to get product");
       throw err;
     }
   };
@@ -89,7 +101,7 @@ export const useProducts = (userId: number) => {
     try {
       return await ProductOperations.getStats(userId);
     } catch (err) {
-      setError('Failed to get product statistics');
+      setError("Failed to get product statistics");
       throw err;
     }
   };
@@ -108,7 +120,8 @@ export const useProducts = (userId: number) => {
     addProduct,
     updateProduct,
     deleteProduct,
-    getProductStats
+    getProductById,
+    getProductStats,
   };
 };
 
@@ -119,24 +132,24 @@ export const useAuth = () => {
 
   const register = async (userData: UserFormData) => {
     if (!isInitialized) {
-      throw new Error('Database not initialized');
+      throw new Error("Database not initialized");
     }
 
     try {
       setLoading(true);
-      
+
       // Check if email already exists
       const existingUser = await UserOperations.getByEmail(userData.email);
       if (existingUser) {
-        throw new Error('Email already registered');
+        throw new Error("Email already registered");
       }
 
       const userId = await UserOperations.create(userData);
-      
+
       // Get the created user
       const user = await UserOperations.getByEmail(userData.email);
       setCurrentUser(user);
-      
+
       return userId;
     } catch (error) {
       throw error;
@@ -147,14 +160,14 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string) => {
     if (!isInitialized) {
-      throw new Error('Database not initialized');
+      throw new Error("Database not initialized");
     }
 
     try {
       setLoading(true);
       const user = await UserOperations.verifyCredentials(email, password);
       if (!user) {
-        throw new Error('Invalid email or password');
+        throw new Error("Invalid email or password");
       }
       setCurrentUser(user);
       return user;
@@ -178,7 +191,7 @@ export const useAuth = () => {
         setCurrentUser(users[0]); // Auto-login first user for simplicity
       }
     } catch (error) {
-      console.error('Error checking existing users:', error);
+      console.error("Error checking existing users:", error);
     }
   };
 
@@ -194,6 +207,6 @@ export const useAuth = () => {
     register,
     login,
     logout,
-    isAuthenticated: !!currentUser
+    isAuthenticated: !!currentUser,
   };
 };
