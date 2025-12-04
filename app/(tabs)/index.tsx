@@ -92,12 +92,12 @@ export default function ProductListScreen() {
     );
   };
 
-  const handleEdit = (productId: number) => {
-    router.push({
-      pathname: '/create',
-      params: { productId: productId.toString() },
-    });
-  };
+const handleEdit = (productId: number) => {
+  router.push({
+    pathname: '/edit',
+    params: { productId: productId.toString() },
+  });
+};
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [

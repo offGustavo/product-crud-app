@@ -6,17 +6,21 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { productSchema, ProductFormValues } from '../utils/validation';
 
 interface ProductFormProps {
-  onSubmit: (data: ProductFormValues) => Promise<void>;
-  initialData?: Partial<ProductFormValues>;
+  onSubmit: (data: ProductFormValues) => void;
+  initialData?: ProductFormValues;
   loading?: boolean;
   userId: number;
+  theme?: any;
+  submitText?: string; 
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ 
-  onSubmit, 
-  initialData, 
+const ProductForm: React.FC<ProductFormProps> = ({
+  onSubmit,
+  initialData,
   loading,
-  userId 
+  userId,
+  theme,
+  submitText = 'Create Product' 
 }) => {
   const {
     control,
@@ -139,12 +143,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         <Button
           mode="contained"
-          onPress={handleSubmit(handleFormSubmit)}
+          onPress={handleSubmit(onSubmit)}
           loading={loading}
           disabled={loading}
           style={styles.submitButton}
         >
-          {initialData?.name ? 'Update Product' : 'Create Product'}
+          {submitText}
         </Button>
       </View>
     </ScrollView>

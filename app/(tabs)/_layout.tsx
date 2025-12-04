@@ -27,11 +27,10 @@ export default function TabLayout() {
           backgroundColor: '#FEF7FF',
         },
         headerTintColor: '#6750A4',
-        // Add tabBarStyle with your background color
         tabBarStyle: {
-          backgroundColor: "#E8DEF8", // Secondary container color
-          borderTopWidth: 0, // Optional: removes the top border
-          elevation: 0, // Optional: removes shadow on Android
+          backgroundColor: "#E8DEF8",
+          borderTopWidth: 0,
+          elevation: 0,
         },
       }}
     >
@@ -51,6 +50,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="add" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="edit"
+        options={{
+          href: null, // Isso esconde a tela do tab bar
+          headerShown: false, // Se você quiser controlar o header dentro da tela
         }}
       />
       <Tabs.Screen
