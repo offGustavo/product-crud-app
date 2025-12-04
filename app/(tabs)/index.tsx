@@ -17,8 +17,8 @@ import {
   Snackbar,
   Chip,
   useTheme,
-  FAB,
 } from "react-native-paper";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { useProducts } from "../../hooks/useDatabase";
@@ -52,7 +52,8 @@ export default function ProductListScreen() {
       await loadProducts();
       const productStats = await getProductStats();
       setStats(productStats);
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to refresh products:", error);
       showSnackbar("Failed to refresh products");
     } finally {
       setRefreshing(false);
@@ -87,7 +88,8 @@ export default function ProductListScreen() {
             try {
               await deleteProduct(productId);
               showSnackbar("Product deleted successfully");
-            } catch (err) {
+            } catch (error) {
+              console.error("Failed to delete product:", error);
               showSnackbar("Failed to delete product");
             }
           },
@@ -151,7 +153,7 @@ export default function ProductListScreen() {
               />
               <View style={styles.statItem}>
                 <Text
-                  style={[styles.statNumber, { color: theme.colors.primary }]}
+                  style={[styles.statNumber, { color: theme.colors.secondary }]}
                 >
                   {stats.active}
                 </Text>
@@ -215,6 +217,12 @@ export default function ProductListScreen() {
                   { backgroundColor: theme.colors.error },
                 ]}
                 labelStyle={{ color: theme.colors.onError }}
+                icon="refresh"
+                theme={{
+                  colors: {
+                    onSurfaceVariant: theme.colors.onError,
+                  },
+                }}
               >
                 Retry
               </Button>
@@ -277,6 +285,13 @@ export default function ProductListScreen() {
                       color: product.active ? "#4CAF50" : theme.colors.error,
                       fontWeight: "500",
                     }}
+                    theme={{
+                      colors: {
+                        onSurfaceVariant: product.active
+                          ? "#4CAF50"
+                          : theme.colors.error,
+                      },
+                    }}
                   >
                     {product.active ? "Active" : "Inactive"}
                   </Chip>
@@ -336,13 +351,18 @@ export default function ProductListScreen() {
                         color: theme.colors.onPrimaryContainer,
                       },
                     ]}
-                    //TODO: fix this
-                    // iconStyle={{
-                    //   color: product.quantity === 0 ? "#BA1A1A" :
-                    //     product.quantity < 5 ? "#BA1A1A" :
-                    //       product.quantity < 10 ? "#FF9800" :
-                    //         "#6750A4"
-                    // }}
+                    theme={{
+                      colors: {
+                        onSurfaceVariant:
+                          product.quantity === 0
+                            ? theme.colors.onErrorContainer
+                            : product.quantity < 5 && product.quantity > 0
+                              ? theme.colors.onErrorContainer
+                              : product.quantity < 10 && product.quantity >= 5
+                                ? "#EF6C00"
+                                : theme.colors.onPrimaryContainer,
+                      },
+                    }}
                   >
                     Qty: {product.quantity}
                   </Chip>
@@ -365,6 +385,12 @@ export default function ProductListScreen() {
                     { borderColor: theme.colors.primary },
                   ]}
                   labelStyle={{ color: theme.colors.primary }}
+                  icon="pencil"
+                  theme={{
+                    colors: {
+                      onSurfaceVariant: theme.colors.primary,
+                    },
+                  }}
                 >
                   Edit
                 </Button>
@@ -376,6 +402,12 @@ export default function ProductListScreen() {
                     { backgroundColor: theme.colors.error },
                   ]}
                   labelStyle={{ color: theme.colors.onError }}
+                  icon="delete"
+                  theme={{
+                    colors: {
+                      onSurfaceVariant: theme.colors.onError,
+                    },
+                  }}
                 >
                   Delete
                 </Button>
@@ -411,15 +443,19 @@ const styles = StyleSheet.create({
 
   statsCard: {
     margin: 16,
-    padding: 16,
-    borderRadius: 20,
+    padding: 20,
+    borderRadius: 12,
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
 
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
 
   statItem: {
@@ -427,67 +463,89 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  statIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
   statNumber: {
-    fontSize: 24,
-    fontWeight: "600",
+    fontSize: 28,
+    fontWeight: "400",
+    fontFamily: "Roboto",
   },
 
   statLabel: {
     fontSize: 12,
-    marginTop: 4,
+    marginTop: 6,
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    fontWeight: "500",
+    fontFamily: "Roboto-Medium",
   },
 
   divider: {
     width: 1,
     height: 40,
+    opacity: 0.12,
   },
 
   productCard: {
     marginHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 8,
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 12,
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
 
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 8,
+    marginBottom: 12,
   },
 
   productName: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 12,
     fontSize: 16,
     fontWeight: "500",
+    fontFamily: "Roboto-Medium",
+    lineHeight: 24,
   },
 
   statusChip: {
     borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
 
   description: {
-    marginBottom: 12,
+    marginBottom: 16,
     fontSize: 14,
+    lineHeight: 20,
+    fontFamily: "Roboto",
+    letterSpacing: 0.25,
   },
 
   cardFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 12,
   },
 
   quantityChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 0,
     borderColor: "transparent",
     flexDirection: "row",
@@ -495,9 +553,11 @@ const styles = StyleSheet.create({
   },
 
   quantityChipText: {
-    fontWeight: "600",
-    fontSize: 14,
+    fontWeight: "500",
+    fontSize: 12,
     marginLeft: 4,
+    fontFamily: "Roboto-Medium",
+    letterSpacing: 0.5,
   },
 
   dateText: {

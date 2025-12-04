@@ -103,8 +103,13 @@ export default function CreateProductScreen() {
         action={{
           label: "OK",
           onPress: () => setSnackbarVisible(false),
+          labelStyle: { color: theme.colors.inversePrimary },
         }}
-        style={{ backgroundColor: theme.colors.inverseSurface }}
+        style={{
+          backgroundColor: theme.colors.inverseSurface,
+          borderRadius: 4,
+          marginBottom: 16,
+        }}
       >
         <Text style={{ color: theme.colors.inverseOnSurface }}>
           {snackbarMessage}

@@ -6,6 +6,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -19,6 +20,7 @@ import {
   Surface,
   Avatar,
   useTheme,
+  FAB,
 } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
@@ -30,6 +32,10 @@ import {
 } from "../../utils/validation";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import ThemeSettings from "../../components/ThemeSettings";
+import ThemeVariantSelector from "../../components/ThemeVariantSelector";
+import ThemePreview from "../../components/ThemePreview";
+import ThemeTestIndicator from "../../components/ThemeTestIndicator";
 
 // Define default values outside component to prevent re-creation
 const LOGIN_DEFAULT_VALUES: LoginFormValues = {
@@ -58,6 +64,7 @@ export default function AuthScreen() {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [themeSettingsVisible, setThemeSettingsVisible] = useState(false);
 
   // Memoize resolvers to prevent re-creation
   const loginResolver = useMemo(() => yupResolver(loginSchema), []);
@@ -193,6 +200,9 @@ export default function AuthScreen() {
             </View>
           </Surface>
 
+          {/* Theme Test Indicator */}
+          <ThemeTestIndicator />
+
           {/* User Info Card */}
           <Card
             style={[styles.userCard, { backgroundColor: theme.colors.surface }]}
@@ -297,6 +307,54 @@ export default function AuthScreen() {
               >
                 Add New Product
               </Button>
+
+              <Button
+                mode="contained"
+                onPress={() => setThemeSettingsVisible(true)}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: theme.colors.tertiaryContainer },
+                ]}
+                contentStyle={styles.actionButtonContent}
+                icon="palette"
+                labelStyle={{ color: theme.colors.onTertiaryContainer }}
+              >
+                Advanced Theme
+              </Button>
+            </Card.Content>
+          </Card>
+
+          {/* Theme Selector */}
+          <Card
+            style={[
+              styles.actionsCard,
+              { backgroundColor: theme.colors.surface },
+            ]}
+          >
+            <Card.Content>
+              <Title
+                style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
+              >
+                App Theme
+              </Title>
+              <ThemeVariantSelector showTitle={false} compact={false} />
+            </Card.Content>
+          </Card>
+
+          {/* Theme Preview */}
+          <Card
+            style={[
+              styles.actionsCard,
+              { backgroundColor: theme.colors.surface },
+            ]}
+          >
+            <Card.Content>
+              <Title
+                style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
+              >
+                Theme Preview
+              </Title>
+              <ThemePreview showTitle={false} compact={false} />
             </Card.Content>
           </Card>
 
@@ -326,6 +384,16 @@ export default function AuthScreen() {
             </Card.Content>
           </Card>
         </ScrollView>
+
+        {/* Theme Settings Modal */}
+        <Modal
+          visible={themeSettingsVisible}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setThemeSettingsVisible(false)}
+        >
+          <ThemeSettings onClose={() => setThemeSettingsVisible(false)} />
+        </Modal>
       </KeyboardAvoidingView>
     );
   }
@@ -629,13 +697,23 @@ export default function AuthScreen() {
           label: "OK",
           onPress: () => setSnackbarVisible(false),
           labelStyle: { color: theme.colors.inversePrimary },
+          color: theme.colors.inverseOnSurface,
         }}
-        style={{ backgroundColor: theme.colors.inverseSurface }}
       >
         <Text style={{ color: theme.colors.inverseOnSurface }}>
           {snackbarMessage}
         </Text>
       </Snackbar>
+
+      {/* Theme Settings Modal */}
+      <Modal
+        visible={themeSettingsVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setThemeSettingsVisible(false)}
+      >
+        <ThemeSettings onClose={() => setThemeSettingsVisible(false)} />
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -650,92 +728,111 @@ const styles = StyleSheet.create({
 
   // Profile Screen Styles
   header: {
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    elevation: 4,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    elevation: 0,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
   headerContent: {
     alignItems: "center",
   },
   welcomeTitle: {
-    fontSize: 24,
-    fontWeight: "600",
-    marginTop: 16,
-    marginBottom: 4,
+    fontSize: 28,
+    fontWeight: "400",
+    marginTop: 20,
+    marginBottom: 8,
+    fontFamily: "Roboto",
+    lineHeight: 36,
   },
   userName: {
-    fontSize: 18,
-    fontWeight: "400",
+    fontSize: 16,
+    fontWeight: "500",
     opacity: 0.8,
+    fontFamily: "Roboto-Medium",
+    letterSpacing: 0.15,
+    lineHeight: 24,
   },
 
   userCard: {
     margin: 20,
-    borderRadius: 16,
-    elevation: 2,
+    borderRadius: 12,
+    elevation: 1,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   userCardContent: {
-    paddingVertical: 20,
+    paddingVertical: 24,
   },
   infoRow: {
-    paddingVertical: 12,
+    paddingVertical: 16,
   },
   infoLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "500",
-    marginBottom: 4,
+    marginBottom: 6,
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    fontFamily: "Roboto-Medium",
+    lineHeight: 16,
   },
   infoValue: {
     fontSize: 16,
     fontWeight: "400",
+    fontFamily: "Roboto",
+    letterSpacing: 0.5,
+    lineHeight: 24,
   },
   infoDivider: {
-    marginVertical: 8,
-    opacity: 0.5,
+    marginVertical: 12,
+    opacity: 0.12,
   },
 
   actionsCard: {
     marginHorizontal: 20,
     marginBottom: 16,
-    borderRadius: 16,
-    elevation: 2,
+    borderRadius: 12,
+    elevation: 1,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 16,
+    fontSize: 22,
+    fontWeight: "500",
+    marginBottom: 20,
+    fontFamily: "Roboto-Medium",
+    lineHeight: 28,
+    letterSpacing: 0,
   },
   actionButton: {
     marginBottom: 12,
-    borderRadius: 12,
-    elevation: 0,
+    borderRadius: 28,
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   actionButtonContent: {
-    paddingVertical: 8,
+    paddingVertical: 14,
   },
 
   signOutCard: {
     marginHorizontal: 20,
     marginBottom: 20,
-    borderRadius: 16,
+    borderRadius: 12,
     elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   signOutButton: {
-    borderRadius: 12,
-    borderWidth: 2,
+    borderRadius: 28,
+    borderWidth: 1,
   },
 
   // Auth Screen Styles
@@ -754,37 +851,44 @@ const styles = StyleSheet.create({
   },
   authTitle: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "400",
     marginTop: 16,
     marginBottom: 8,
     textAlign: "center",
+    fontFamily: "Roboto",
+    lineHeight: 36,
   },
   authSubtitle: {
     fontSize: 16,
     fontWeight: "400",
     textAlign: "center",
     opacity: 0.8,
-    lineHeight: 22,
+    lineHeight: 24,
+    fontFamily: "Roboto",
+    letterSpacing: 0.5,
   },
 
   authCard: {
     margin: 20,
     marginTop: 30,
-    borderRadius: 20,
-    elevation: 4,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    borderRadius: 12,
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   authCardContent: {
-    paddingVertical: 30,
+    paddingVertical: 32,
     paddingHorizontal: 24,
   },
   formTitle: {
-    fontSize: 24,
-    fontWeight: "600",
+    fontSize: 22,
+    fontWeight: "500",
     marginBottom: 24,
     textAlign: "center",
+    fontFamily: "Roboto-Medium",
+    lineHeight: 28,
+    letterSpacing: 0,
   },
 
   inputContainer: {
@@ -793,18 +897,25 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 16,
     backgroundColor: "transparent",
+    fontFamily: "Roboto",
   },
   errorText: {
     fontSize: 12,
     marginTop: 4,
     marginLeft: 12,
+    fontFamily: "Roboto",
+    letterSpacing: 0.4,
+    lineHeight: 16,
   },
 
   submitButton: {
-    marginTop: 8,
-    marginBottom: 24,
-    borderRadius: 12,
-    elevation: 3,
+    marginTop: 24,
+    marginBottom: 16,
+    borderRadius: 28,
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   submitButtonContent: {
     paddingVertical: 12,
@@ -815,9 +926,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexWrap: "wrap",
+    marginTop: 8,
   },
   toggleText: {
     fontSize: 14,
     marginRight: 4,
+    fontFamily: "Roboto",
+    letterSpacing: 0.25,
+    lineHeight: 20,
   },
 });

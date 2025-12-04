@@ -8,11 +8,11 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useMemo, useEffect } from "react";
 
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { MD3Colors, MD3ColorsDark } from "../constants/theme";
 import { AuthProvider } from "../contexts/AuthContext";
 import { useDatabase } from "../hooks/useDatabase";
+import { CustomThemeProvider, useCustomTheme } from "../contexts/ThemeContext";
 
 // In your app's entry point (app/_layout.tsx or similar):
 import Database from "../database/index";
@@ -24,49 +24,68 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-// Material Design 3 Theme Configuration
-const MaterialThemeLight = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: MD3Colors.primary,
-    background: MD3Colors.background,
-    card: MD3Colors.surface,
-    text: MD3Colors.onBackground,
-    border: MD3Colors.outline,
-    notification: MD3Colors.primary,
-  },
-};
-
-const MaterialThemeDark = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    primary: MD3ColorsDark.primary,
-    background: MD3ColorsDark.background,
-    card: MD3ColorsDark.surface,
-    text: MD3ColorsDark.onBackground,
-    border: MD3ColorsDark.outline,
-    notification: MD3ColorsDark.primary,
-  },
-};
-
-const PaperThemeLight = {
-  colors: MD3Colors,
-};
-
-const PaperThemeDark = {
-  colors: MD3ColorsDark,
-};
-
 function AppContent() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const {
+    colors: themeColors,
+    isDark,
+    themeVersion,
+    currentTheme,
+  } = useCustomTheme();
+
+  // Debug logging for theme changes
+  useEffect(() => {
+    console.log(
+      `🎨 Theme changed to: ${currentTheme}, Version: ${themeVersion}, Dark: ${isDark}`,
+    );
+    console.log(`🎨 Primary color: ${themeColors.primary}`);
+  }, [currentTheme, themeVersion, isDark, themeColors.primary]);
+
+  // Enhanced Paper Theme with dynamic colors - useMemo for hot reload
+  const PaperTheme = useMemo(() => {
+    const theme = {
+      colors: {
+        ...themeColors,
+        // React Native Paper specific mappings
+        backdrop: themeColors.scrim,
+        onSurfaceDisabled: themeColors.onSurface + "38", // 38 = 22% opacity in hex
+        surfaceDisabled: themeColors.onSurface + "12", // 12 = 7% opacity in hex
+      },
+      roundness: 12,
+      animation: {
+        scale: 1.0,
+      },
+    };
+    console.log(`🎨 PaperTheme updated with primary: ${theme.colors.primary}`);
+    return theme;
+  }, [themeColors]);
+
+  // Navigation theme based on current colors
+  const NavigationTheme = useMemo(() => {
+    const navTheme = {
+      ...(isDark ? DarkTheme : DefaultTheme),
+      colors: {
+        ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+        primary: themeColors.primary,
+        background: themeColors.background,
+        card: themeColors.surface,
+        text: themeColors.onBackground,
+        border: themeColors.outline,
+        notification: themeColors.primary,
+      },
+    };
+    console.log(
+      `🎨 NavigationTheme updated with primary: ${navTheme.colors.primary}`,
+    );
+    return navTheme;
+  }, [themeColors, isDark]);
 
   return (
-    <SafeAreaProvider>
-      <PaperProvider theme={isDark ? PaperThemeDark : PaperThemeLight}>
-        <ThemeProvider value={isDark ? MaterialThemeDark : MaterialThemeLight}>
+    <SafeAreaProvider key={`theme-${currentTheme}-${themeVersion}`}>
+      <PaperProvider
+        theme={PaperTheme}
+        key={`paper-${currentTheme}-${themeVersion}`}
+      >
+        <ThemeProvider value={NavigationTheme}>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen
@@ -76,9 +95,7 @@ function AppContent() {
           </Stack>
           <StatusBar
             style={isDark ? "light" : "dark"}
-            backgroundColor={
-              isDark ? MD3ColorsDark.background : MD3Colors.background
-            }
+            backgroundColor={themeColors.background}
           />
         </ThemeProvider>
       </PaperProvider>
@@ -91,7 +108,9 @@ export default function RootLayout() {
 
   return (
     <AuthProvider isInitialized={isInitialized}>
-      <AppContent />
+      <CustomThemeProvider>
+        <AppContent />
+      </CustomThemeProvider>
     </AuthProvider>
   );
 }

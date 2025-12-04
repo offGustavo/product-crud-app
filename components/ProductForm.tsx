@@ -76,6 +76,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 mode="outlined"
                 error={!!errors.name}
                 disabled={loading}
+                style={{
+                  backgroundColor: "transparent",
+                }}
+                outlineStyle={{
+                  borderRadius: 12,
+                  borderWidth: 1,
+                }}
+                contentStyle={{
+                  fontSize: 16,
+                  fontFamily: "Roboto",
+                }}
               />
               {errors.name && (
                 <HelperText type="error">{errors.name.message}</HelperText>
@@ -98,6 +109,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 numberOfLines={3}
                 error={!!errors.description}
                 disabled={loading}
+                style={{
+                  backgroundColor: "transparent",
+                }}
+                outlineStyle={{
+                  borderRadius: 12,
+                  borderWidth: 1,
+                }}
+                contentStyle={{
+                  fontSize: 16,
+                  fontFamily: "Roboto",
+                }}
               />
               {errors.description && (
                 <HelperText type="error">
@@ -121,6 +143,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 keyboardType="numeric"
                 error={!!errors.quantity}
                 disabled={loading}
+                style={{
+                  backgroundColor: "transparent",
+                }}
+                outlineStyle={{
+                  borderRadius: 12,
+                  borderWidth: 1,
+                }}
+                contentStyle={{
+                  fontSize: 16,
+                  fontFamily: "Roboto",
+                }}
               />
               {errors.quantity && (
                 <HelperText type="error">{errors.quantity.message}</HelperText>
@@ -157,7 +190,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
           )}
           loading={loading}
           disabled={loading}
-          style={styles.button}
+          style={[
+            styles.button,
+            { backgroundColor: theme?.colors.primary || "#006A6B" },
+          ]}
+          contentStyle={{ paddingVertical: 12 }}
+          labelStyle={{
+            fontSize: 14,
+            fontWeight: "500",
+            fontFamily: "Roboto-Medium",
+            letterSpacing: 0.1,
+            color: theme?.colors.onPrimary || "#FFFFFF",
+          }}
         >
           {submitText}
         </Button>
@@ -171,21 +215,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   form: {
-    padding: 20,
-    gap: 16,
+    padding: 24,
+    gap: 20,
   },
   field: {
-    marginBottom: 8,
+    marginBottom: 4,
   },
   statusText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: "#666",
+    marginTop: 12,
+    fontSize: 12,
+    color: "#6F7978",
     textAlign: "center",
+    fontFamily: "Roboto",
+    letterSpacing: 0.4,
+    lineHeight: 16,
   },
   button: {
-    marginTop: 20,
+    marginTop: 32,
     paddingVertical: 8,
+    borderRadius: 28,
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
 });
 
