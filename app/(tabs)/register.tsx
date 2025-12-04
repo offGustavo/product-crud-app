@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -21,10 +21,26 @@ import {
 } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
-import { LoginFormValues, UserFormValues } from "../../utils/validation";
+import {
+  LoginFormValues,
+  UserFormValues,
+  loginSchema,
+  userSchema,
+} from "../../utils/validation";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { loginSchema, userSchema } from "../../utils/validation";
+
+// Define default values outside component to prevent re-creation
+const LOGIN_DEFAULT_VALUES: LoginFormValues = {
+  email: "",
+  password: "",
+};
+
+const REGISTER_DEFAULT_VALUES: UserFormValues = {
+  name: "",
+  email: "",
+  password: "",
+};
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -41,17 +57,19 @@ export default function AuthScreen() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [logoutLoading, setLogoutLoading] = useState(false);
 
+  // Memoize resolvers to prevent re-creation
+  const loginResolver = useMemo(() => yupResolver(loginSchema), []);
+  const registerResolver = useMemo(() => yupResolver(userSchema), []);
+
   const {
     control: loginControl,
     handleSubmit: handleLoginSubmit,
     formState: { errors: loginErrors },
     reset: resetLoginForm,
   } = useForm<LoginFormValues>({
-    resolver: yupResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    resolver: loginResolver,
+    defaultValues: LOGIN_DEFAULT_VALUES,
+    mode: "onChange",
   });
 
   const {
@@ -60,12 +78,9 @@ export default function AuthScreen() {
     formState: { errors: registerErrors },
     reset: resetRegisterForm,
   } = useForm<UserFormValues>({
-    resolver: yupResolver(userSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-    },
+    resolver: registerResolver,
+    defaultValues: REGISTER_DEFAULT_VALUES,
+    mode: "onChange",
   });
 
   const showSnackbar = (message: string) => {
@@ -77,7 +92,7 @@ export default function AuthScreen() {
     try {
       await register(data);
       showSnackbar("Registration successful! Welcome!");
-      resetRegisterForm();
+      // resetRegisterForm();
       setTimeout(() => {
         router.replace("/");
       }, 1500);
@@ -124,8 +139,7 @@ export default function AuthScreen() {
 
   const toggleMode = () => {
     setIsLoginMode(!isLoginMode);
-    resetLoginForm();
-    resetRegisterForm();
+    // Don't reset forms when toggling modes to preserve user input
   };
 
   // User Profile Screen
@@ -368,20 +382,22 @@ export default function AuthScreen() {
               {isLoginMode ? "Sign In" : "Sign Up"}
             </Title>
 
-            {/* Register Form */}
-            {!isLoginMode && (
+            {/* Name Field - Only for Register */}
+            <View
+              style={!isLoginMode ? styles.inputContainer : { display: "none" }}
+            >
               <Controller
                 control={registerControl}
                 name="name"
                 render={({ field: { onChange, value } }) => (
-                  <View style={styles.inputContainer}>
+                  <>
                     <TextInput
                       label="Full Name"
                       value={value}
                       onChangeText={onChange}
                       mode="outlined"
                       error={!!registerErrors.name}
-                      disabled={authLoading}
+                      disabled={authLoading || isLoginMode}
                       style={styles.input}
                       left={<TextInput.Icon icon="account" />}
                       outlineColor={theme.colors.outline}
@@ -397,18 +413,20 @@ export default function AuthScreen() {
                         {registerErrors.name.message}
                       </Text>
                     )}
-                  </View>
+                  </>
                 )}
               />
-            )}
+            </View>
 
-            {/* Email Field */}
-            {isLoginMode ? (
+            {/* Email Field - Login */}
+            <View
+              style={isLoginMode ? styles.inputContainer : { display: "none" }}
+            >
               <Controller
                 control={loginControl}
                 name="email"
                 render={({ field: { onChange, value } }) => (
-                  <View style={styles.inputContainer}>
+                  <>
                     <TextInput
                       label="Email Address"
                       value={value}
@@ -417,7 +435,7 @@ export default function AuthScreen() {
                       keyboardType="email-address"
                       autoCapitalize="none"
                       error={!!loginErrors.email}
-                      disabled={authLoading}
+                      disabled={authLoading || !isLoginMode}
                       style={styles.input}
                       left={<TextInput.Icon icon="email" />}
                       outlineColor={theme.colors.outline}
@@ -433,15 +451,20 @@ export default function AuthScreen() {
                         {loginErrors.email.message}
                       </Text>
                     )}
-                  </View>
+                  </>
                 )}
               />
-            ) : (
+            </View>
+
+            {/* Email Field - Register */}
+            <View
+              style={!isLoginMode ? styles.inputContainer : { display: "none" }}
+            >
               <Controller
                 control={registerControl}
                 name="email"
                 render={({ field: { onChange, value } }) => (
-                  <View style={styles.inputContainer}>
+                  <>
                     <TextInput
                       label="Email Address"
                       value={value}
@@ -450,7 +473,7 @@ export default function AuthScreen() {
                       keyboardType="email-address"
                       autoCapitalize="none"
                       error={!!registerErrors.email}
-                      disabled={authLoading}
+                      disabled={authLoading || isLoginMode}
                       style={styles.input}
                       left={<TextInput.Icon icon="email" />}
                       outlineColor={theme.colors.outline}
@@ -466,18 +489,20 @@ export default function AuthScreen() {
                         {registerErrors.email.message}
                       </Text>
                     )}
-                  </View>
+                  </>
                 )}
               />
-            )}
+            </View>
 
-            {/* Password Field */}
-            {isLoginMode ? (
+            {/* Password Field - Login */}
+            <View
+              style={isLoginMode ? styles.inputContainer : { display: "none" }}
+            >
               <Controller
                 control={loginControl}
                 name="password"
                 render={({ field: { onChange, value } }) => (
-                  <View style={styles.inputContainer}>
+                  <>
                     <TextInput
                       label="Password"
                       value={value}
@@ -485,7 +510,7 @@ export default function AuthScreen() {
                       mode="outlined"
                       secureTextEntry
                       error={!!loginErrors.password}
-                      disabled={authLoading}
+                      disabled={authLoading || !isLoginMode}
                       style={styles.input}
                       left={<TextInput.Icon icon="lock" />}
                       outlineColor={theme.colors.outline}
@@ -501,15 +526,20 @@ export default function AuthScreen() {
                         {loginErrors.password.message}
                       </Text>
                     )}
-                  </View>
+                  </>
                 )}
               />
-            ) : (
+            </View>
+
+            {/* Password Field - Register */}
+            <View
+              style={!isLoginMode ? styles.inputContainer : { display: "none" }}
+            >
               <Controller
                 control={registerControl}
                 name="password"
                 render={({ field: { onChange, value } }) => (
-                  <View style={styles.inputContainer}>
+                  <>
                     <TextInput
                       label="Password"
                       value={value}
@@ -517,7 +547,7 @@ export default function AuthScreen() {
                       mode="outlined"
                       secureTextEntry
                       error={!!registerErrors.password}
-                      disabled={authLoading}
+                      disabled={authLoading || isLoginMode}
                       style={styles.input}
                       left={<TextInput.Icon icon="lock" />}
                       outlineColor={theme.colors.outline}
@@ -533,10 +563,10 @@ export default function AuthScreen() {
                         {registerErrors.password.message}
                       </Text>
                     )}
-                  </View>
+                  </>
                 )}
               />
-            )}
+            </View>
 
             {/* Submit Button */}
             <Button
