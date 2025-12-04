@@ -445,6 +445,7 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 12,
     color: "#6D6D6D",
+    flex: 1,
   },
 
   actionButton: {
