@@ -15,6 +15,8 @@ git clone https://github.com/offGustavo/product-crud-app ~/project/product-crud-
 ```bash
 cd ~/Projects/product-crud-app/
 
+npm install
+
 npx expo run
 ```
 
