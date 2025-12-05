@@ -201,7 +201,7 @@ export default function AuthScreen() {
           </Surface>
 
           {/* Theme Test Indicator */}
-          <ThemeTestIndicator />
+          {/*<ThemeTestIndicator />*/}
 
           {/* User Info Card */}
           <Card
@@ -308,19 +308,6 @@ export default function AuthScreen() {
                 Add New Product
               </Button>
 
-              <Button
-                mode="contained"
-                onPress={() => setThemeSettingsVisible(true)}
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: theme.colors.tertiaryContainer },
-                ]}
-                contentStyle={styles.actionButtonContent}
-                icon="palette"
-                labelStyle={{ color: theme.colors.onTertiaryContainer }}
-              >
-                Advanced Theme
-              </Button>
             </Card.Content>
           </Card>
 
@@ -359,30 +346,24 @@ export default function AuthScreen() {
           </Card>
 
           {/* Sign Out Button */}
-          <Card
-            style={[
-              styles.signOutCard,
-              { backgroundColor: theme.colors.errorContainer },
-            ]}
-          >
-            <Card.Content>
-              <Button
-                mode="outlined"
-                onPress={handleLogout}
-                loading={logoutLoading}
-                disabled={logoutLoading}
-                style={[
-                  styles.signOutButton,
-                  { borderColor: theme.colors.error },
-                ]}
-                contentStyle={styles.actionButtonContent}
-                icon="logout"
-                labelStyle={{ color: theme.colors.error }}
-              >
-                Sign Out
-              </Button>
-            </Card.Content>
-          </Card>
+
+          <Card.Content>
+            <Button
+              mode="outlined"
+              onPress={handleLogout}
+              loading={logoutLoading}
+              disabled={logoutLoading}
+              style={[
+                styles.signOutButton,
+                { borderColor: theme.colors.error },
+              ]}
+              contentStyle={styles.actionButtonContent}
+              icon="logout"
+              labelStyle={{ color: theme.colors.error }}
+            >
+              Sign Out
+            </Button>
+          </Card.Content>
         </ScrollView>
 
         {/* Theme Settings Modal */}
@@ -730,8 +711,8 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 48,
     paddingHorizontal: 24,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     elevation: 0,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -831,8 +812,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   signOutButton: {
-    borderRadius: 28,
+    borderRadius: 88,
     borderWidth: 1,
+    marginBottom: 13,
   },
 
   // Auth Screen Styles
